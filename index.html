@@ -11,6 +11,8 @@
       height: auto;
       object-fit: cover;  /* Ensures video maintains aspect ratio */
       border: 2px solid #ccc;
+      display: block;
+      background-color: #000; /* Set a black background in case video isn't loading */
     }
 
     /* Style the capture button */
@@ -81,22 +83,27 @@
     function startCamera() {
       navigator.mediaDevices.getUserMedia({ video: true })
         .then(stream => {
+          // Attach the stream to the video element
           video.srcObject = stream;
-          video.play();  // Ensure the video starts playing
-          console.log('Camera feed started');
+
+          // Check if the video is loading
+          video.onloadedmetadata = function () {
+            console.log('Video metadata loaded');
+            video.play();  // Play the video once metadata is ready
+          };
+
+          video.onerror = function (err) {
+            console.error('Video error: ', err);
+            alert('There was an error loading the video feed. Please check camera access and try again.');
+          };
         })
         .catch(err => {
           console.error('Error accessing camera: ', err);
-          alert('Could not access camera. Please check permissions.');
+          alert('Could not access camera. Please check permissions or try again.');
         });
     }
 
-    // Wait for the video to play before attempting to capture
-    video.addEventListener('play', function () {
-      console.log('Video is playing');
-    });
-
-    // Check if we're using HTTPS or localhost
+    // If page is served over HTTPS or localhost, start the camera
     if (window.location.protocol === 'https:' || window.location.hostname === 'localhost') {
       startCamera();
     } else {
@@ -109,13 +116,13 @@
         // Set canvas size to match video resolution
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
-        
+
         // Draw the current video frame onto the canvas
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
-        
+
         // Convert the canvas content to a data URL (base64 image)
         const imageData = canvas.toDataURL('image/png');
-        
+
         // Show the captured image and hide the video
         capturedImage.src = imageData;
         capturedImage.style.display = 'block';  // Show the image after capture
