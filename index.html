@@ -175,6 +175,7 @@
 </html> 
 -->
 
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -195,7 +196,6 @@
       background-color: #f4f4f9;
     }
 
-    /* Added a debug message for visibility */
     #status {
       font-size: 16px;
       color: green;
@@ -220,25 +220,34 @@
         }
       };
 
-      // Request video stream
+      // Check if permissions have been granted
+      navigator.permissions.query({ name: 'camera' }).then(permissionStatus => {
+        if (permissionStatus.state === 'granted') {
+          console.log('Camera permission granted');
+          requestCameraStream(constraints);
+        } else {
+          console.log('Camera permission denied or not set');
+          status.textContent = 'Camera permission denied or not set. Please enable camera access in Safari settings.';
+        }
+      }).catch(error => {
+        console.error('Error checking camera permissions: ', error);
+        status.textContent = 'Error checking camera permissions: ' + error.message;
+      });
+    }
+
+    // Request the camera stream
+    function requestCameraStream(constraints) {
       navigator.mediaDevices.getUserMedia(constraints)
         .then(stream => {
           console.log('Camera stream started');
           video.srcObject = stream;
 
-          // Add event listeners for when the video is ready to play
           video.oncanplay = function () {
             console.log('Video can play now');
             video.play();
-          };
-
-          // Handle the play event
-          video.onplay = function () {
-            console.log('Video is playing');
             status.textContent = 'Camera access granted. Displaying video stream.';
           };
 
-          // If video fails to play
           video.onerror = function (error) {
             console.error('Error in video stream: ', error);
             status.textContent = 'Error in video stream: ' + error.message;
@@ -256,4 +265,5 @@
 
 </body>
 </html>
+
 
