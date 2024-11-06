@@ -83,6 +83,7 @@
         .then(stream => {
           video.srcObject = stream;
           video.play();  // Ensure the video starts playing
+          console.log('Camera feed started');
         })
         .catch(err => {
           console.error('Error accessing camera: ', err);
@@ -95,7 +96,7 @@
       console.log('Video is playing');
     });
 
-    // If the page is served over HTTPS, start the camera on load
+    // Check if we're using HTTPS or localhost
     if (window.location.protocol === 'https:' || window.location.hostname === 'localhost') {
       startCamera();
     } else {
