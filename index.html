@@ -245,9 +245,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Capture and Upload Photo</title>
-  <style>
-    /* Styling omitted for brevity */
-  </style>
 </head>
 <body>
 
@@ -285,15 +282,27 @@
     // Initialize Google API Client
     function initClient() {
       gapi.client.init({
-        apiKey: 'AIzaSyBIlo97y4-eTNyYbyvBgSyh866u0qpCDWc',
-        clientId: '236823481359-bah6saog9au93shs6rmpg1ss9am0jnu1.apps.googleusercontent.com',
+        apiKey: 'YOUR_API_KEY',
+        clientId: 'YOUR_CLIENT_ID',
         discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"],
         scope: 'https://www.googleapis.com/auth/drive.file',
       }).then(() => {
         console.log("Google API client initialized.");
+        checkAuthStatus(); // Check if the user is already signed in
       }).catch(error => {
         console.error("Error initializing Google API client", error);
       });
+    }
+
+    // Check if the user is signed in
+    function checkAuthStatus() {
+      gapi.auth2.getAuthInstance().isSignedIn.listen(handleSignInStatus);
+      if (gapi.auth2.getAuthInstance().isSignedIn.get()) {
+        console.log('User is signed in');
+      } else {
+        console.log('User is not signed in');
+        gapi.auth2.getAuthInstance().signIn();  // Sign in the user if they are not signed in
+      }
     }
 
     // Start video stream
@@ -336,6 +345,7 @@
       return navigator.mediaDevices.enumerateDevices()
         .then(devices => {
           videoDevices = devices.filter(device => device.kind === 'videoinput');
+          console.log("Available video devices:", videoDevices);  // Debug log
           return videoDevices;
         })
         .catch(err => {
@@ -351,12 +361,10 @@
         return;
       }
 
-      // Find the next camera (toggle between the first and second device)
       const nextDevice = videoDevices.find(device => device.deviceId !== currentDeviceId);
-
       if (nextDevice) {
         currentDeviceId = nextDevice.deviceId;
-        startVideoStream(currentDeviceId);  // Restart stream with the new camera
+        startVideoStream(currentDeviceId);
       }
     });
 
@@ -367,13 +375,14 @@
         canvas.height = videoHeight;
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-        // Convert to PNG image
         const imageDataURL = canvas.toDataURL('image/png', 1.0);
         capturedImage.src = imageDataURL;
         capturedImage.style.display = 'block';
         video.style.display = 'none';
         captureButton.style.display = 'none';
         recaptureButton.style.display = 'inline-block';
+
+        uploadToGoogleDrive(imageDataURL);  // Upload the captured image to Google Drive
       }
     });
 
@@ -385,12 +394,49 @@
       video.style.display = 'block';
     });
 
+    // Function to upload image to Google Drive
+    function uploadToGoogleDrive(imageData) {
+      const fileMetadata = {
+        name: 'captured_image.png',
+        mimeType: 'image/png',
+      };
+
+      const media = {
+        mimeType: 'image/png',
+        body: dataURItoBlob(imageData),
+      };
+
+      gapi.client.drive.files.create({
+        resource: fileMetadata,
+        media: media,
+        fields: 'id',
+      }).then((response) => {
+        console.log('File uploaded successfully', response);
+        alert('Image uploaded to Google Drive');
+      }).catch((error) => {
+        console.error('Error uploading file: ', error);
+        alert('Failed to upload image');
+      });
+    }
+
+    // Helper function to convert the data URL to a Blob
+    function dataURItoBlob(dataURI) {
+      const byteString = atob(dataURI.split(',')[1]);
+      const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+      const arrayBuffer = new ArrayBuffer(byteString.length);
+      const uintArray = new Uint8Array(arrayBuffer);
+      for (let i = 0; i < byteString.length; i++) {
+        uintArray[i] = byteString.charCodeAt(i);
+      }
+      return new Blob([uintArray], { type: mimeString });
+    }
+
     // Initialize on page load
     window.onload = function () {
       loadGoogleAPI();
       getVideoDevices().then(() => {
         if (videoDevices.length > 0) {
-          currentDeviceId = videoDevices[0].deviceId;  // Default to the first camera
+          currentDeviceId = videoDevices[0].deviceId;
           startVideoStream(currentDeviceId);
         } else {
           alert('No video devices found.');
@@ -398,6 +444,5 @@
       });
     };
   </script>
-
 </body>
 </html>
