@@ -5,14 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Capture Photo</title>
   <style>
-    /* Styling for video element to ensure it is displayed correctly */
     #video {
-      width: auto;
+      width: 100%;
       height: auto;
       object-fit: cover;  /* Ensures video maintains aspect ratio */
-      border: 2px solid #ccc; /* Optional: adds a border for better visibility */
+      border: 2px solid #ccc;
     }
-    /* Center the capture button */
     #capture {
       display: block;
       margin: 20px auto;
@@ -34,7 +32,7 @@
   <button id="capture">Capture</button>
   <canvas id="canvas" style="display:none;"></canvas>
   <img id="capturedImage" style="max-width:100%; margin-top: 20px;" />
-  
+
   <script>
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
@@ -42,22 +40,41 @@
     const captureButton = document.getElementById('capture');
     const capturedImage = document.getElementById('capturedImage');
 
-    // Start the video stream from the phone's camera
-    navigator.mediaDevices.getUserMedia({ video: true })
-      .then(stream => {
-        video.srcObject = stream;
-      })
-      .catch(err => {
-        console.error('Error accessing camera: ', err);
-        alert('Could not access camera. Please check permissions.');
-      });
+    // Try to access the camera
+    function startCamera() {
+      navigator.mediaDevices.getUserMedia({ video: true })
+        .then(stream => {
+          video.srcObject = stream;
+          video.play();  // Ensure the video starts playing
+        })
+        .catch(err => {
+          console.error('Error accessing camera: ', err);
+          alert('Could not access camera. Please check permissions.');
+        });
+    }
+
+    // Wait for the video to play before attempting to capture
+    video.addEventListener('play', function () {
+      console.log('Video is playing');
+    });
+
+    // If the page is served over HTTPS, start the camera on load
+    if (window.location.protocol === 'https:' || window.location.hostname === 'localhost') {
+      startCamera();
+    } else {
+      alert('Camera access requires HTTPS or localhost.');
+    }
 
     // Capture the photo when the button is clicked
     captureButton.addEventListener('click', () => {
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      context.drawImage(video, 0, 0, canvas.width, canvas.height);
-      capturedImage.src = canvas.toDataURL('image/png');
+      if (video.srcObject) {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        capturedImage.src = canvas.toDataURL('image/png');
+      } else {
+        alert('Video not available.');
+      }
     });
   </script>
 </body>
