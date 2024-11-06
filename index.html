@@ -294,7 +294,6 @@
 
     // Start video with default camera (usually front-facing)
     getVideoDevices().then(videoDevices => {
-      // If no devices are found, alert and return
       if (videoDevices.length === 0) {
         alert('No video devices found.');
         return;
@@ -330,7 +329,7 @@
           return;
         }
 
-        // Check for fullscreen and exit it first if needed
+        // Prevent fullscreen on iOS Safari and Chrome by exiting fullscreen if needed
         if (document.webkitFullscreenElement || document.fullscreenElement) {
           if (document.webkitExitFullscreen) {
             document.webkitExitFullscreen();
@@ -348,26 +347,26 @@
       });
     });
 
-    // Prevent fullscreen on iOS Safari (by capturing touch events)
-    video.addEventListener('touchstart', (event) => {
-      event.preventDefault(); // Prevent fullscreen trigger
-    });
-
-    // Prevent fullscreen when clicking the video on iOS
-    video.addEventListener('click', (event) => {
-      if (document.webkitFullscreenElement || document.fullscreenElement) {
-        // Exit fullscreen if in fullscreen mode
-        if (document.webkitExitFullscreen) {
-          document.webkitExitFullscreen();
-        } else if (document.exitFullscreen) {
-          document.exitFullscreen();
-        }
+    // Prevent fullscreen on iOS (both Safari and Chrome)
+    function preventFullscreen(event) {
+      if (event.target === video) {
+        event.preventDefault();
       }
-    });
+    }
 
-    // Prevent fullscreen when interacting with the swap camera button
+    // Listen for touchstart and click events on the video element to prevent fullscreen
+    video.addEventListener('touchstart', preventFullscreen, { passive: false });
+    video.addEventListener('click', preventFullscreen, { passive: false });
+
+    // Ensure video keeps playing after exiting fullscreen
+    video.onfullscreenchange = function () {
+      if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        video.play();
+      }
+    };
+
+    // Prevent fullscreen on camera swap button
     swapCameraButton.addEventListener('click', () => {
-      // If fullscreen is triggered by the button, exit it
       if (document.webkitFullscreenElement || document.fullscreenElement) {
         if (document.webkitExitFullscreen) {
           document.webkitExitFullscreen();
