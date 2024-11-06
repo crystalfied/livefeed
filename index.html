@@ -309,7 +309,7 @@
       const constraints = {
         video: {
           deviceId: deviceId ? { exact: deviceId } : undefined,
-          facingMode: 'environment', // Prefer back camera on mobile
+          facingMode: 'environment', // Prefer back camera on mobile by default
           width: { ideal: 1280 },
           height: { ideal: 720 },
         }
@@ -347,10 +347,10 @@
           videoDevices = devices.filter(device => device.kind === 'videoinput');
           console.log("Available video devices:", videoDevices);  // Debug log
 
-          if (videoDevices.length < 2) {
-            swapCameraButton.style.display = 'none'; // Hide swap button if no additional camera exists
-          } else {
+          if (videoDevices.length >= 2) {
             swapCameraButton.style.display = 'inline-block'; // Show swap button if multiple cameras exist
+          } else {
+            swapCameraButton.style.display = 'none'; // Hide swap button if only one camera
           }
           return videoDevices;
         })
@@ -367,6 +367,7 @@
         return;
       }
 
+      // Swap between the front and back camera by toggling deviceId
       const nextDevice = videoDevices.find(device => device.deviceId !== currentDeviceId);
       if (nextDevice) {
         currentDeviceId = nextDevice.deviceId;
@@ -412,7 +413,7 @@
         body: dataURItoBlob(imageData),
       };
 
-      // Make sure user is signed in
+      // Make sure user is signed in before uploading
       if (gapi.auth2.getAuthInstance().isSignedIn.get()) {
         gapi.client.drive.files.create({
           resource: fileMetadata,
