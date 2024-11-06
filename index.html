@@ -282,8 +282,8 @@
     // Initialize Google API Client
     function initClient() {
       gapi.client.init({
-        apiKey: 'AIzaSyBIlo97y4-eTNyYbyvBgSyh866u0qpCDWc',
-        clientId: '236823481359-bah6saog9au93shs6rmpg1ss9am0jnu1.apps.googleusercontent.com',
+        apiKey: 'YOUR_API_KEY', // Replace with your API key
+        clientId: 'YOUR_CLIENT_ID', // Replace with your client ID
         discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"],
         scope: 'https://www.googleapis.com/auth/drive.file',
       }).then(() => {
@@ -297,10 +297,7 @@
     // Check if the user is signed in
     function checkAuthStatus() {
       gapi.auth2.getAuthInstance().isSignedIn.listen(handleSignInStatus);
-      if (gapi.auth2.getAuthInstance().isSignedIn.get()) {
-        console.log('User is signed in');
-      } else {
-        console.log('User is not signed in');
+      if (!gapi.auth2.getAuthInstance().isSignedIn.get()) {
         gapi.auth2.getAuthInstance().signIn();  // Sign in the user if they are not signed in
       }
     }
@@ -346,6 +343,9 @@
         .then(devices => {
           videoDevices = devices.filter(device => device.kind === 'videoinput');
           console.log("Available video devices:", videoDevices);  // Debug log
+          if (videoDevices.length < 2) {
+            swapCameraButton.style.display = 'none'; // Hide swap button if no additional camera exists
+          }
           return videoDevices;
         })
         .catch(err => {
@@ -364,7 +364,7 @@
       const nextDevice = videoDevices.find(device => device.deviceId !== currentDeviceId);
       if (nextDevice) {
         currentDeviceId = nextDevice.deviceId;
-        startVideoStream(currentDeviceId);
+        startVideoStream(currentDeviceId);  // Restart stream with the new camera
       }
     });
 
