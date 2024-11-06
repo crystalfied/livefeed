@@ -344,45 +344,101 @@
         });
     }
 
-    // Get video devices (cameras)
-    function getVideoDevices() {
-      navigator.mediaDevices.enumerateDevices()
-        .then(devices => {
-          videoDevices = devices.filter(device => device.kind === 'videoinput');
-          console.log("Available video devices:", videoDevices);
+    // Button to swap the camera
+    swapCameraButton.addEventListener('click', () => {
+      getVideoDevices().then(videoDevices => {
+        if (videoDevices.length < 2) {
+          alert('No additional camera available.');
+          return;
+        }
 
-          // If there are multiple cameras, show the swap button
-          if (videoDevices.length > 1) {
-            swapCameraButton.style.display = 'inline-block';
-          }
+        // Prevent fullscreen on iOS Safari/Chrome
+        exitFullscreen();
 
-          if (videoDevices.length > 0) {
-            currentDeviceId = videoDevices[0].deviceId; // Default to first camera
-            startVideoStream(currentDeviceId); // Start video stream with first camera
-          } else {
-            alert('No video devices found.');
-          }
-        })
-        .catch(err => {
-          console.error('Error enumerating devices: ', err);
-          alert('Error enumerating devices: ' + err.message);
-        });
+        // Find the other camera (swap between the first and second device)
+        const nextDeviceId = videoDevices.find(device => device.deviceId !== currentDeviceId).deviceId;
+        currentDeviceId = nextDeviceId;
+
+        // Restart the stream with the new camera
+        startVideoStream(currentDeviceId);
+      });
+    });
+
+    // Exit fullscreen if the browser has triggered it (for iOS Safari/Chrome)
+    function exitFullscreen() {
+      if (document.fullscreenElement || document.webkitFullscreenElement) {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+          document.webkitExitFullscreen();
+        }
+      }
     }
 
-    // Swap between front/back camera
-    swapCameraButton.addEventListener('click', () => {
-      if (videoDevices.length < 2) {
-        alert('No additional camera available.');
-        return;
+    // Prevent fullscreen on touch events for iOS Safari/Chrome
+    function preventFullscreen(event) {
+      if (event.target === video) {
+        event.preventDefault(); // Prevent fullscreen
       }
+    }
 
-      // Find the next available camera
-      const nextDevice = videoDevices.find(device => device.deviceId !== currentDeviceId);
-      if (nextDevice) {
-        currentDeviceId = nextDevice.deviceId;
-        startVideoStream(currentDeviceId); // Restart stream with new camera
+    // Attach listeners to prevent fullscreen
+    video.addEventListener('touchstart', preventFullscreen, { passive: false });
+    video.addEventListener('click', preventFullscreen, { passive: false });
+
+    // Ensure the video keeps playing after exiting fullscreen
+    video.onfullscreenchange = function () {
+      if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        video.play();
       }
+    };    // Button to swap the camera
+    swapCameraButton.addEventListener('click', () => {
+      getVideoDevices().then(videoDevices => {
+        if (videoDevices.length < 2) {
+          alert('No additional camera available.');
+          return;
+        }
+
+        // Prevent fullscreen on iOS Safari/Chrome
+        exitFullscreen();
+
+        // Find the other camera (swap between the first and second device)
+        const nextDeviceId = videoDevices.find(device => device.deviceId !== currentDeviceId).deviceId;
+        currentDeviceId = nextDeviceId;
+
+        // Restart the stream with the new camera
+        startVideoStream(currentDeviceId);
+      });
     });
+
+    // Exit fullscreen if the browser has triggered it (for iOS Safari/Chrome)
+    function exitFullscreen() {
+      if (document.fullscreenElement || document.webkitFullscreenElement) {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+          document.webkitExitFullscreen();
+        }
+      }
+    }
+
+    // Prevent fullscreen on touch events for iOS Safari/Chrome
+    function preventFullscreen(event) {
+      if (event.target === video) {
+        event.preventDefault(); // Prevent fullscreen
+      }
+    }
+
+    // Attach listeners to prevent fullscreen
+    video.addEventListener('touchstart', preventFullscreen, { passive: false });
+    video.addEventListener('click', preventFullscreen, { passive: false });
+
+    // Ensure the video keeps playing after exiting fullscreen
+    video.onfullscreenchange = function () {
+      if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        video.play();
+      }
+    };
 
     // Capture photo from video stream
     captureButton.addEventListener('click', () => {
