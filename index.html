@@ -5,12 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Capture Photo</title>
   <style>
+    /* Style the video to cover the container */
     #video {
       width: 100%;
       height: auto;
       object-fit: cover;  /* Ensures video maintains aspect ratio */
       border: 2px solid #ccc;
     }
+
+    /* Style the capture button */
     #capture {
       display: block;
       margin: 20px auto;
@@ -21,17 +24,51 @@
       font-size: 16px;
       cursor: pointer;
     }
+
+    /* Hover effect for the button */
     #capture:hover {
       background-color: #0056b3;
+    }
+
+    /* Styling for the captured image */
+    #capturedImage {
+      max-width: 100%;
+      margin-top: 20px;
+      display: none;  /* Initially hidden */
+      border: 2px solid #ccc;
+    }
+
+    /* A container to hold the video feed and the capture button */
+    .container {
+      text-align: center;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* Add some padding to the page */
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background-color: #f4f4f9;
     }
   </style>
 </head>
 <body>
+
   <h1>Capture Photo</h1>
-  <video id="video" autoplay></video>
-  <button id="capture">Capture</button>
-  <canvas id="canvas" style="display:none;"></canvas>
-  <img id="capturedImage" style="max-width:100%; margin-top: 20px;" />
+  <div class="container">
+    <!-- Video element to show live camera feed -->
+    <video id="video" autoplay></video>
+    
+    <!-- Capture Button -->
+    <button id="capture">Capture</button>
+    
+    <!-- Hidden canvas used for capturing the image -->
+    <canvas id="canvas" style="display:none;"></canvas>
+    
+    <!-- Captured Image -->
+    <img id="capturedImage" />
+  </div>
 
   <script>
     const video = document.getElementById('video');
@@ -40,7 +77,7 @@
     const captureButton = document.getElementById('capture');
     const capturedImage = document.getElementById('capturedImage');
 
-    // Try to access the camera
+    // Start the video stream from the phone's camera
     function startCamera() {
       navigator.mediaDevices.getUserMedia({ video: true })
         .then(stream => {
@@ -68,14 +105,26 @@
     // Capture the photo when the button is clicked
     captureButton.addEventListener('click', () => {
       if (video.srcObject) {
+        // Set canvas size to match video resolution
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
+        
+        // Draw the current video frame onto the canvas
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
-        capturedImage.src = canvas.toDataURL('image/png');
+        
+        // Convert the canvas content to a data URL (base64 image)
+        const imageData = canvas.toDataURL('image/png');
+        
+        // Show the captured image and hide the video
+        capturedImage.src = imageData;
+        capturedImage.style.display = 'block';  // Show the image after capture
+        video.style.display = 'none';           // Hide the video after capture
+        captureButton.style.display = 'none';  // Hide the capture button after capture
       } else {
         alert('Video not available.');
       }
     });
   </script>
+
 </body>
 </html>
