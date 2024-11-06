@@ -5,17 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Capture Photo</title>
   <style>
-    /* Style the video to cover the container */
+    /* Video display and styling */
     #video {
       width: 100%;
       height: auto;
-      object-fit: cover;  /* Ensures video maintains aspect ratio */
+      object-fit: cover;
       border: 2px solid #ccc;
-      display: block;
-      background-color: #000; /* Set a black background in case video isn't loading */
     }
 
-    /* Style the capture button */
     #capture {
       display: block;
       margin: 20px auto;
@@ -27,27 +24,22 @@
       cursor: pointer;
     }
 
-    /* Hover effect for the button */
     #capture:hover {
       background-color: #0056b3;
     }
 
-    /* Styling for the captured image */
     #capturedImage {
       max-width: 100%;
       margin-top: 20px;
-      display: none;  /* Initially hidden */
-      border: 2px solid #ccc;
+      display: none;
     }
 
-    /* A container to hold the video feed and the capture button */
     .container {
       text-align: center;
       max-width: 600px;
       margin: 0 auto;
     }
 
-    /* Add some padding to the page */
     body {
       font-family: Arial, sans-serif;
       padding: 20px;
@@ -59,16 +51,9 @@
 
   <h1>Capture Photo</h1>
   <div class="container">
-    <!-- Video element to show live camera feed -->
-    <video id="video" autoplay></video>
-    
-    <!-- Capture Button -->
+    <video id="video" autoplay muted></video>
     <button id="capture">Capture</button>
-    
-    <!-- Hidden canvas used for capturing the image -->
     <canvas id="canvas" style="display:none;"></canvas>
-    
-    <!-- Captured Image -->
     <img id="capturedImage" />
   </div>
 
@@ -79,33 +64,33 @@
     const captureButton = document.getElementById('capture');
     const capturedImage = document.getElementById('capturedImage');
 
-    // Start the video stream from the phone's camera
-    function startCamera() {
+    // Function to start the video stream
+    function startVideoStream() {
       navigator.mediaDevices.getUserMedia({ video: true })
         .then(stream => {
-          // Attach the stream to the video element
+          console.log('Camera stream started');
           video.srcObject = stream;
 
-          // Check if the video is loading
+          // Check if the video has started playing
           video.onloadedmetadata = function () {
-            console.log('Video metadata loaded');
-            video.play();  // Play the video once metadata is ready
+            console.log('Video metadata loaded, starting video playback');
+            video.play(); // Ensure video starts playing
           };
 
-          video.onerror = function (err) {
-            console.error('Video error: ', err);
-            alert('There was an error loading the video feed. Please check camera access and try again.');
+          video.onerror = function (error) {
+            console.error('Video stream error: ', error);
+            alert('Error with video stream: ' + error.message);
           };
         })
-        .catch(err => {
-          console.error('Error accessing camera: ', err);
-          alert('Could not access camera. Please check permissions or try again.');
+        .catch(error => {
+          console.error('Error accessing camera: ', error);
+          alert('Error accessing camera: ' + error.message);
         });
     }
 
-    // If page is served over HTTPS or localhost, start the camera
+    // Check if we are on HTTPS or localhost
     if (window.location.protocol === 'https:' || window.location.hostname === 'localhost') {
-      startCamera();
+      startVideoStream(); // Start the video if permissions are available
     } else {
       alert('Camera access requires HTTPS or localhost.');
     }
@@ -113,23 +98,17 @@
     // Capture the photo when the button is clicked
     captureButton.addEventListener('click', () => {
       if (video.srcObject) {
-        // Set canvas size to match video resolution
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
-
-        // Draw the current video frame onto the canvas
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-        // Convert the canvas content to a data URL (base64 image)
         const imageData = canvas.toDataURL('image/png');
-
-        // Show the captured image and hide the video
         capturedImage.src = imageData;
-        capturedImage.style.display = 'block';  // Show the image after capture
-        video.style.display = 'none';           // Hide the video after capture
-        captureButton.style.display = 'none';  // Hide the capture button after capture
+        capturedImage.style.display = 'block';
+        video.style.display = 'none';
+        captureButton.style.display = 'none';
       } else {
-        alert('Video not available.');
+        alert('Video stream is not available.');
       }
     });
   </script>
