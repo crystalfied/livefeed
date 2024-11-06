@@ -244,7 +244,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Capture and Upload Photo</title>
+  <title>Capture and Upload Photo to Google Drive</title>
   <style>
     /* Video display and styling */
     #video {
@@ -289,6 +289,20 @@
       background-color: #218838;
     }
 
+    #swapCamera {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background-color: #FFC107;
+      color: white;
+      border: none;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    #swapCamera:hover {
+      background-color: #E0A800;
+    }
+
     .container {
       text-align: center;
       max-width: 600px;
@@ -304,7 +318,7 @@
 </head>
 <body>
 
-  <h1>Capture and Upload Photo</h1>
+  <h1>Capture and Upload Photo to Google Drive</h1>
   <div class="container">
     <video id="video" autoplay muted playsinline></video>
     <button id="capture">Capture</button>
@@ -312,28 +326,94 @@
     <canvas id="canvas" style="display:none;"></canvas>
     <img id="capturedImage" />
     <button id="recapture">Re-capture</button>
-    <button id="uploadToDrive" style="display:none;">Upload to Google Drive</button>
   </div>
 
   <script src="https://apis.google.com/js/api.js"></script>
-  <script>
-    const video = document.getElementById('video');
-    const canvas = document.getElementById('canvas');
-    const context = canvas.getContext('2d');
-    const captureButton = document.getElementById('capture');
-    const swapCameraButton = document.getElementById('swapCamera');
-    const capturedImage = document.getElementById('capturedImage');
-    const recaptureButton = document.getElementById('recapture');
-    const uploadToDriveButton = document.getElementById('uploadToDrive');
+  <script src="https://apis.google.com/js/client.js"></script>
 
+  <script>
+    // Google API credentials and settings
+    const CLIENT_ID = '236823481359-hec318cfi6l4dlori28m4o71b6q46ka7.apps.googleusercontent.com'; // Replace with your Google client ID
+    const API_KEY = 'AIzaSyA0tbk_qHuSg1PfZEEw_kAftrrgUVdOBpY'; // Replace with your Google API key
+    const SCOPES = 'https://www.googleapis.com/auth/drive.file'; // Scope for uploading files
+
+    let gapiLoaded = false;
+    let auth2;
     let currentStream;
     let currentDeviceId = null;
     let videoWidth = 640;
     let videoHeight = 480;
-    let capturedImageDataURL = null;
 
-    let gapiClientLoaded = false;
-    let isAuthenticated = false;
+    // Initialize Google API client
+    function initGoogleAPI() {
+      gapi.load('client:auth2', () => {
+        gapi.client.init({
+          apiKey: API_KEY,
+          clientId: CLIENT_ID,
+          scope: SCOPES,
+          discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
+        }).then(() => {
+          auth2 = gapi.auth2.getAuthInstance();
+          gapiLoaded = true;
+          console.log("Google API client loaded successfully.");
+        }).catch(error => {
+          console.error("Error initializing Google API client", error);
+        });
+      });
+    }
+
+    // Authorize the user to use Google Drive
+    function handleAuthClick() {
+      if (!gapiLoaded) return;
+
+      auth2.signIn().then(() => {
+        console.log('User signed in');
+      }).catch(error => {
+        console.error('Error signing in', error);
+      });
+    }
+
+    // Function to upload the image to Google Drive
+    function uploadToGoogleDrive(imageData) {
+      if (!auth2.isSignedIn.get()) {
+        console.log('User not signed in');
+        return;
+      }
+
+      const boundary = '-------314159265358979323846';
+      const delimiter = "\r\n--" + boundary + "\r\n";
+      const closeDelimiter = "\r\n--" + boundary + "--";
+
+      const metadata = {
+        'name': 'captured_image.png',
+        'mimeType': 'image/png'
+      };
+
+      const base64Data = imageData.split(',')[1];
+      const multipartRequestBody =
+        delimiter +
+        'Content-Type: application/json; charset=UTF-8\r\n\r\n' +
+        JSON.stringify(metadata) +
+        delimiter +
+        'Content-Type: image/png\r\n' +
+        'Content-Transfer-Encoding: base64\r\n\r\n' +
+        base64Data +
+        closeDelimiter;
+
+      const request = gapi.client.request({
+        'path': '/upload/drive/v3/files?uploadType=multipart',
+        'method': 'POST',
+        'headers': {
+          'Content-Type': 'multipart/related; boundary="' + boundary + '"'
+        },
+        'body': multipartRequestBody
+      });
+
+      request.execute(function(response) {
+        console.log('File uploaded successfully', response);
+        alert('Image uploaded to Google Drive!');
+      });
+    }
 
     // Function to start the video stream
     function startVideoStream(deviceId = null) {
@@ -353,130 +433,87 @@
       navigator.mediaDevices.getUserMedia(constraints)
         .then(stream => {
           currentStream = stream;
-          video.srcObject = stream;
-          video.onloadedmetadata = () => {
-            video.play();
-            videoWidth = video.videoWidth;
-            videoHeight = video.videoHeight;
-            canvas.width = videoWidth;
-            canvas.height = videoHeight;
+          document.getElementById('video').srcObject = stream;
+
+          document.getElementById('video').onloadedmetadata = function() {
+            document.getElementById('video').play();
+            videoWidth = document.getElementById('video').videoWidth;
+            videoHeight = document.getElementById('video').videoHeight;
           };
         })
         .catch(error => {
+          console.error('Error accessing camera: ', error);
           alert('Error accessing camera: ' + error.message);
         });
     }
 
-    // Function to initialize Google API client
-    function initGoogleAPI() {
-      gapi.load('client:auth2', () => {
-        gapi.auth2.init({
-          client_id: '236823481359-hec318cfi6l4dlori28m4o71b6q46ka7.apps.googleusercontent.com', // Replace with your actual Google client ID
-        }).then(() => {
-          gapiClientLoaded = true;
-          checkAuthStatus();
+    // Function to swap the camera (front/back)
+    function swapCamera() {
+      navigator.mediaDevices.enumerateDevices()
+        .then(devices => {
+          const videoDevices = devices.filter(device => device.kind === 'videoinput');
+          if (videoDevices.length < 2) {
+            alert('No additional camera available.');
+            return;
+          }
+          const nextDeviceId = videoDevices.find(device => device.deviceId !== currentDeviceId).deviceId;
+          currentDeviceId = nextDeviceId;
+          startVideoStream(currentDeviceId);
+        })
+        .catch(err => {
+          console.error('Error enumerating devices: ', err);
+          alert('Error enumerating devices: ' + err.message);
         });
-      });
     }
 
-    // Function to check if user is authenticated
-    function checkAuthStatus() {
-      if (gapiClientLoaded) {
-        const authInstance = gapi.auth2.getAuthInstance();
-        isAuthenticated = authInstance.isSignedIn.get();
-        if (isAuthenticated) {
-          uploadToDriveButton.style.display = 'inline-block';
-        }
-      }
-    }
-
-    // Function to authenticate user with Google OAuth
-    function authenticate() {
-      gapi.auth2.getAuthInstance().signIn().then(() => {
-        checkAuthStatus();
-      });
-    }
-
-    // Function to upload image to Google Drive
-    function uploadImageToDrive(imageDataURL) {
-      const boundary = '-------314159265358979323846';
-      const delimiter = "\r\n--" + boundary + "\r\n";
-      const closeDelimiter = "\r\n--" + boundary + "--";
-      
-      const metadata = {
-        'name': 'captured_image.png',
-        'mimeType': 'image/png'
-      };
-
-      const multipartRequestBody =
-        delimiter +
-        'Content-Type: application/json\r\n\r\n' +
-        JSON.stringify(metadata) +
-        delimiter +
-        'Content-Type: image/png\r\n\r\n' +
-        dataURItoBlob(imageDataURL).data +
-        closeDelimiter;
-
-      const request = gapi.client.request({
-        'path': '/upload/drive/v3/files?uploadType=multipart',
-        'method': 'POST',
-        'headers': {
-          'Content-Type': 'multipart/related; boundary="' + boundary + '"'
-        },
-        'body': multipartRequestBody
-      });
-
-      request.execute(response => {
-        console.log('File uploaded', response);
-      });
-    }
-
-    // Convert Data URL to Blob
-    function dataURItoBlob(dataURI) {
-      const byteString = atob(dataURI.split(',')[1]);
-      const arrayBuffer = new ArrayBuffer(byteString.length);
-      const uintArray = new Uint8Array(arrayBuffer);
-      for (let i = 0; i < byteString.length; i++) {
-        uintArray[i] = byteString.charCodeAt(i);
-      }
-      return new Blob([uintArray], { type: 'image/png' });
-    }
-
-    // Capture the image
-    captureButton.addEventListener('click', () => {
+    // Capture image from video
+    document.getElementById('capture').addEventListener('click', () => {
+      const canvas = document.getElementById('canvas');
+      const context = canvas.getContext('2d');
       canvas.width = videoWidth;
       canvas.height = videoHeight;
-      context.drawImage(video, 0, 0, canvas.width, canvas.height);
-      capturedImageDataURL = canvas.toDataURL('image/png', 1.0);
-      capturedImage.src = capturedImageDataURL;
-      capturedImage.style.display = 'block';
-      video.style.display = 'none';
-      captureButton.style.display = 'none';
-      recaptureButton.style.display = 'inline-block';
-      uploadToDriveButton.style.display = 'inline-block'; // Show upload button
+      context.drawImage(document.getElementById('video'), 0, 0, canvas.width, canvas.height);
+
+      // Convert to PNG image
+      const imageData = canvas.toDataURL('image/png');
+      document.getElementById('capturedImage').src = imageData;
+      document.getElementById('capturedImage').style.display = 'block';
+      document.getElementById('video').style.display = 'none';
+      document.getElementById('capture').style.display = 'none';
+      document.getElementById('recapture').style.display = 'inline-block';  // Show recapture button
+
+      // Upload image to Google Drive
+      uploadToGoogleDrive(imageData);
     });
 
     // Re-capture the image
-    recaptureButton.addEventListener('click', () => {
-      capturedImage.style.display = 'none';
-      captureButton.style.display = 'inline-block';
-      recaptureButton.style.display = 'none';
-      video.style.display = 'block';
+    document.getElementById('recapture').addEventListener('click', () => {
+      document.getElementById('capturedImage').style.display = 'none';
+      document.getElementById('capture').style.display = 'inline-block';
+      document.getElementById('recapture').style.display = 'none';
+      document.getElementById('video').style.display = 'block';
     });
 
-    // Upload image to Google Drive
-    uploadToDriveButton.addEventListener('click', () => {
-      if (!isAuthenticated) {
-        authenticate();
-      } else {
-        uploadImageToDrive(capturedImageDataURL);
-      }
-    });
+    // Initialize Google API and start video stream
+    window.onload = function() {
+      initGoogleAPI();
+      navigator.mediaDevices.enumerateDevices().then(devices => {
+        const videoDevices = devices.filter(device => device.kind === 'videoinput');
+        if (videoDevices.length > 0) {
+          currentDeviceId = videoDevices[0].deviceId;
+          startVideoStream(currentDeviceId);
+        } else {
+          alert('No video devices found.');
+        }
+      });
+    };
 
-    // Load Google API client
-    initGoogleAPI();
+    // Swap camera functionality
+    document.getElementById('swapCamera').addEventListener('click', swapCamera);
+
   </script>
 
 </body>
 </html>
+
 
