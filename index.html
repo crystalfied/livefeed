@@ -53,6 +53,7 @@
   <div class="container">
     <video id="video" autoplay muted></video>
     <button id="capture">Capture</button>
+    <button id="swapCamera">Swap Camera</button>
     <canvas id="canvas" style="display:none;"></canvas>
     <img id="capturedImage" />
   </div>
@@ -62,13 +63,30 @@
     const canvas = document.getElementById('canvas');
     const context = canvas.getContext('2d');
     const captureButton = document.getElementById('capture');
+    const swapCameraButton = document.getElementById('swapCamera');
     const capturedImage = document.getElementById('capturedImage');
 
+    let currentStream;
+    let currentDeviceId = null;
+
     // Function to start the video stream
-    function startVideoStream() {
-      navigator.mediaDevices.getUserMedia({ video: true })
+    function startVideoStream(deviceId = null) {
+      const constraints = {
+        video: {
+          deviceId: deviceId ? { exact: deviceId } : undefined
+        }
+      };
+
+      // Stop current stream if exists
+      if (currentStream) {
+        const tracks = currentStream.getTracks();
+        tracks.forEach(track => track.stop());
+      }
+
+      navigator.mediaDevices.getUserMedia(constraints)
         .then(stream => {
           console.log('Camera stream started');
+          currentStream = stream;
           video.srcObject = stream;
 
           // Check if the video has started playing
@@ -88,14 +106,33 @@
         });
     }
 
-    // Check if we are on HTTPS or localhost
-    if (window.location.protocol === 'https:' || window.location.hostname === 'localhost') {
-      startVideoStream(); // Start the video if permissions are available
-    } else {
-      alert('Camera access requires HTTPS or localhost.');
+    // Function to get the list of available video devices (front/back cameras)
+    function getVideoDevices() {
+      return navigator.mediaDevices.enumerateDevices()
+        .then(devices => {
+          const videoDevices = devices.filter(device => device.kind === 'videoinput');
+          return videoDevices;
+        })
+        .catch(err => {
+          console.error('Error enumerating devices: ', err);
+          alert('Error enumerating devices: ' + err.message);
+        });
     }
 
-    // Capture the photo when the button is clicked
+    // Start video with default camera (usually front-facing)
+    getVideoDevices().then(videoDevices => {
+      // If no devices are found, alert and return
+      if (videoDevices.length === 0) {
+        alert('No video devices found.');
+        return;
+      }
+
+      // Get the first video device (typically the front camera)
+      currentDeviceId = videoDevices[0].deviceId;
+      startVideoStream(currentDeviceId);
+    });
+
+    // Button to capture the image
     captureButton.addEventListener('click', () => {
       if (video.srcObject) {
         canvas.width = video.videoWidth;
@@ -110,6 +147,23 @@
       } else {
         alert('Video stream is not available.');
       }
+    });
+
+    // Button to swap the camera
+    swapCameraButton.addEventListener('click', () => {
+      getVideoDevices().then(videoDevices => {
+        if (videoDevices.length < 2) {
+          alert('No additional camera available.');
+          return;
+        }
+
+        // Find the other camera (swap between the first and second device)
+        const nextDeviceId = videoDevices.find(device => device.deviceId !== currentDeviceId).deviceId;
+        currentDeviceId = nextDeviceId;
+
+        // Restart the stream with the new camera
+        startVideoStream(currentDeviceId);
+      });
     });
   </script>
 
