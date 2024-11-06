@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -169,6 +169,75 @@
       startVideoStream(currentDeviceId);
     });
 
+  </script>
+
+</body>
+</html> 
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Camera Access</title>
+  <style>
+    #video {
+      width: 100%;
+      height: auto;
+      object-fit: cover;
+      border: 2px solid #ccc;
+    }
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background-color: #f4f4f9;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Test Camera Access</h1>
+  <video id="video" autoplay muted></video>
+  <p id="status">Trying to access your camera...</p>
+
+  <script>
+    const video = document.getElementById('video');
+    const status = document.getElementById('status');
+
+    // Function to start the video stream
+    function startVideoStream(deviceId = null) {
+      const constraints = {
+        video: {
+          facingMode: "user"  // This should always use the front camera on most devices
+        }
+      };
+
+      // Request video stream
+      navigator.mediaDevices.getUserMedia(constraints)
+        .then(stream => {
+          console.log('Camera stream started');
+          video.srcObject = stream;
+
+          video.onloadedmetadata = function () {
+            console.log('Video metadata loaded');
+            status.textContent = 'Camera access granted. Displaying video stream.';
+            video.play(); // Ensure video starts playing
+          };
+
+          video.onerror = function (error) {
+            console.error('Error in video stream: ', error);
+            status.textContent = 'Error in video stream: ' + error.message;
+          };
+        })
+        .catch(error => {
+          console.error('Error accessing camera: ', error);
+          status.textContent = 'Error accessing camera: ' + error.message;
+        });
+    }
+
+    // Start the video stream
+    startVideoStream();
   </script>
 
 </body>
