@@ -275,7 +275,7 @@
     let currentDeviceId = null;
     let videoWidth = 640;
     let videoHeight = 480;
-    let imageDataURL = '';
+    let videoDevices = [];
 
     // Load Google API client
     function loadGoogleAPI() {
@@ -301,8 +301,8 @@
       const constraints = {
         video: {
           deviceId: deviceId ? { exact: deviceId } : undefined,
-          width: { ideal: 1920 },
-          height: { ideal: 1080 },
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
         }
       };
 
@@ -331,6 +331,35 @@
         });
     }
 
+    // Get the list of available video devices (front/back cameras)
+    function getVideoDevices() {
+      return navigator.mediaDevices.enumerateDevices()
+        .then(devices => {
+          videoDevices = devices.filter(device => device.kind === 'videoinput');
+          return videoDevices;
+        })
+        .catch(err => {
+          console.error('Error enumerating devices: ', err);
+          alert('Error enumerating devices: ' + err.message);
+        });
+    }
+
+    // Swap between front/back camera
+    swapCameraButton.addEventListener('click', () => {
+      if (videoDevices.length < 2) {
+        alert('No additional camera available.');
+        return;
+      }
+
+      // Find the next camera (toggle between the first and second device)
+      const nextDevice = videoDevices.find(device => device.deviceId !== currentDeviceId);
+
+      if (nextDevice) {
+        currentDeviceId = nextDevice.deviceId;
+        startVideoStream(currentDeviceId);  // Restart stream with the new camera
+      }
+    });
+
     // Capture photo
     captureButton.addEventListener('click', () => {
       if (video.srcObject) {
@@ -339,57 +368,16 @@
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
         // Convert to PNG image
-        imageDataURL = canvas.toDataURL('image/png', 1.0);
+        const imageDataURL = canvas.toDataURL('image/png', 1.0);
         capturedImage.src = imageDataURL;
         capturedImage.style.display = 'block';
         video.style.display = 'none';
         captureButton.style.display = 'none';
         recaptureButton.style.display = 'inline-block';
-
-        // Store the image URL in localStorage to be shared with external page
-        localStorage.setItem('capturedImageURL', imageDataURL);
-
-        // Upload image to Google Drive
-        uploadToGoogleDrive(imageDataURL);
       }
     });
 
-    // Upload captured image to Google Drive
-    function uploadToGoogleDrive(imageDataURL) {
-      // Convert base64 image data to a Blob
-      const byteString = atob(imageDataURL.split(',')[1]);
-      const arrayBuffer = new ArrayBuffer(byteString.length);
-      const uintArray = new Uint8Array(arrayBuffer);
-      for (let i = 0; i < byteString.length; i++) {
-        uintArray[i] = byteString.charCodeAt(i);
-      }
-      const blob = new Blob([uintArray], { type: 'image/png' });
-
-      // Create a file object for Google Drive
-      const fileMetadata = {
-        'name': 'captured_image.png',
-        'mimeType': 'image/png'
-      };
-
-      const media = {
-        body: blob
-      };
-
-      gapi.client.drive.files.create({
-        resource: fileMetadata,
-        media: media,
-        fields: 'id'
-      }).then((response) => {
-        console.log('File uploaded successfully, file ID:', response.result.id);
-
-        // Store the file ID in localStorage (can be used by the external page)
-        localStorage.setItem('uploadedFileID', response.result.id);
-      }).catch((error) => {
-        console.error('Error uploading file:', error);
-      });
-    }
-
-    // Re-capture button functionality
+    // Re-capture photo
     recaptureButton.addEventListener('click', () => {
       capturedImage.style.display = 'none';
       captureButton.style.display = 'inline-block';
@@ -397,10 +385,17 @@
       video.style.display = 'block';
     });
 
-    // Start video on page load
+    // Initialize on page load
     window.onload = function () {
       loadGoogleAPI();
-      startVideoStream();
+      getVideoDevices().then(() => {
+        if (videoDevices.length > 0) {
+          currentDeviceId = videoDevices[0].deviceId;  // Default to the first camera
+          startVideoStream(currentDeviceId);
+        } else {
+          alert('No video devices found.');
+        }
+      });
     };
   </script>
 
