@@ -224,7 +224,7 @@
 
   <h1>Capture Photo</h1>
   <div class="container">
-    <video id="video" autoplay muted></video>
+    <video id="video" autoplay muted playsinline></video>
     <button id="capture">Capture</button>
     <button id="swapCamera">Swap Camera</button>
     <canvas id="canvas" style="display:none;"></canvas>
@@ -329,14 +329,8 @@
           return;
         }
 
-        // Exit fullscreen on iOS to prevent it from being triggered
-        if (document.fullscreenElement || document.webkitFullscreenElement) {
-          if (document.exitFullscreen) {
-            document.exitFullscreen();
-          } else if (document.webkitExitFullscreen) {
-            document.webkitExitFullscreen();
-          }
-        }
+        // Prevent fullscreen on iOS Safari/Chrome
+        exitFullscreen();
 
         // Find the other camera (swap between the first and second device)
         const nextDeviceId = videoDevices.find(device => device.deviceId !== currentDeviceId).deviceId;
@@ -346,6 +340,17 @@
         startVideoStream(currentDeviceId);
       });
     });
+
+    // Exit fullscreen if the browser has triggered it (for iOS Safari/Chrome)
+    function exitFullscreen() {
+      if (document.fullscreenElement || document.webkitFullscreenElement) {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+          document.webkitExitFullscreen();
+        }
+      }
+    }
 
     // Prevent fullscreen on touch events for iOS Safari/Chrome
     function preventFullscreen(event) {
