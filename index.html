@@ -180,14 +180,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Test Camera Access</title>
+  <title>Camera Test</title>
   <style>
     #video {
       width: 100%;
-      height: auto;
+      height: 400px; /* Ensure it's large enough */
       object-fit: cover;
+      background-color: black; /* Default black to see the video element */
       border: 2px solid #ccc;
-      background-color: #000; /* Set a background color to ensure it's visible */
     }
 
     body {
@@ -216,7 +216,7 @@
     function startVideoStream(deviceId = null) {
       const constraints = {
         video: {
-          facingMode: "user"  // Use the front camera on most devices
+          facingMode: "user"  // Use the front camera
         }
       };
 
@@ -226,24 +226,26 @@
           console.log('Camera stream started');
           video.srcObject = stream;
 
-          // Event listeners for debugging
+          // Check if the stream is actually available
+          if (video.srcObject) {
+            console.log('Video stream assigned');
+          } else {
+            console.log('No video stream assigned');
+          }
+
+          // Explicit play after stream is assigned
           video.oncanplay = function () {
             console.log('Video can play now');
+            video.play(); // Explicitly call play()
             status.textContent = 'Camera access granted. Displaying video stream.';
-            video.play();  // Explicitly start the video
           };
 
+          // Handle any errors in the video element
           video.onerror = function (error) {
             console.error('Error in video stream: ', error);
             status.textContent = 'Error in video stream: ' + error.message;
           };
 
-          // Check if the stream is available
-          if (video.srcObject) {
-            console.log('Video stream is available');
-          } else {
-            console.log('Video stream is NOT available');
-          }
         })
         .catch(error => {
           console.error('Error accessing camera: ', error);
