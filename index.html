@@ -348,21 +348,40 @@
       });
     });
 
-    // Prevent fullscreen (clicking the video element should not make it fullscreen)
+    // Prevent fullscreen on video click
     video.addEventListener('click', (event) => {
-      if (document.fullscreenElement) {
+      if (document.fullscreenElement || document.webkitFullscreenElement) {
         // If fullscreen mode is active, exit fullscreen
-        document.exitFullscreen();
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+          document.webkitExitFullscreen();
+        }
       }
     });
 
-    // Disable fullscreen on iOS Safari (sometimes triggered by user interaction)
-    video.addEventListener('webkitfullscreenchange', function() {
-      if (document.webkitFullscreenElement) {
-        document.webkitExitFullscreen();
+    // Prevent fullscreen mode when swapping camera
+    swapCameraButton.addEventListener('click', (event) => {
+      if (document.fullscreenElement || document.webkitFullscreenElement) {
+        // Exit fullscreen before switching cameras
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+          document.webkitExitFullscreen();
+        }
       }
     });
+
+    // Make sure video plays when exiting fullscreen
+    function onFullScreenExit() {
+      video.play();
+    }
+
+    // Handle fullscreen changes on desktop and iOS Safari
+    document.addEventListener('fullscreenchange', onFullScreenExit);
+    document.addEventListener('webkitfullscreenchange', onFullScreenExit);
   </script>
 
 </body>
 </html>
+
