@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Capture Photo</title>
   <style>
-    /* Video display and styling */
     #video {
       width: 100%;
       height: auto;
@@ -70,7 +69,7 @@
     let currentDeviceId = null;
     let videoDevices = [];
 
-    // Function to start the video stream
+    // Function to start the video stream with a specified deviceId
     function startVideoStream(deviceId = null) {
       const constraints = {
         video: {
@@ -111,10 +110,11 @@
     function getVideoDevices() {
       return navigator.mediaDevices.enumerateDevices()
         .then(devices => {
+          console.log('Devices found:', devices); // Log all available devices
           const videoDevices = devices.filter(device => device.kind === 'videoinput');
+          console.log('Video devices found:', videoDevices); // Log only video devices
           if (videoDevices.length === 0) {
-            console.error('No video devices found.');
-            alert('No video devices found.');
+            alert('No video devices found. Please check your camera permissions.');
           }
           return videoDevices;
         })
@@ -127,6 +127,8 @@
     // Start video with default camera (usually front-facing)
     getVideoDevices().then(devices => {
       videoDevices = devices;
+
+      // Check if at least one camera was found
       if (videoDevices.length > 0) {
         currentDeviceId = videoDevices[0].deviceId;
         startVideoStream(currentDeviceId);
@@ -159,6 +161,7 @@
         return;
       }
 
+      // Find the other camera (swap between the first and second device)
       const nextDeviceId = videoDevices.find(device => device.deviceId !== currentDeviceId).deviceId;
       currentDeviceId = nextDeviceId;
 
