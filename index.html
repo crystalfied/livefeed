@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -164,6 +164,203 @@
         // Restart the stream with the new camera
         startVideoStream(currentDeviceId);
       });
+    });
+  </script>
+
+</body>
+</html>
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Capture Photo</title>
+  <style>
+    /* Video display and styling */
+    #video {
+      width: 100%;
+      height: auto;
+      object-fit: cover;
+      border: 2px solid #ccc;
+    }
+
+    #capture {
+      display: block;
+      margin: 20px auto;
+      padding: 10px 20px;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    #capture:hover {
+      background-color: #0056b3;
+    }
+
+    #capturedImage {
+      max-width: 100%;
+      margin-top: 20px;
+      display: none;
+    }
+
+    .container {
+      text-align: center;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background-color: #f4f4f9;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Capture Photo</h1>
+  <div class="container">
+    <video id="video" autoplay muted></video>
+    <button id="capture">Capture</button>
+    <button id="swapCamera">Swap Camera</button>
+    <canvas id="canvas" style="display:none;"></canvas>
+    <img id="capturedImage" />
+  </div>
+
+  <script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const context = canvas.getContext('2d');
+    const captureButton = document.getElementById('capture');
+    const swapCameraButton = document.getElementById('swapCamera');
+    const capturedImage = document.getElementById('capturedImage');
+
+    let currentStream;
+    let currentDeviceId = null;
+
+    // Function to start the video stream
+    function startVideoStream(deviceId = null) {
+      const constraints = {
+        video: {
+          deviceId: deviceId ? { exact: deviceId } : undefined
+        }
+      };
+
+      // Stop current stream if exists
+      if (currentStream) {
+        const tracks = currentStream.getTracks();
+        tracks.forEach(track => track.stop());
+      }
+
+      navigator.mediaDevices.getUserMedia(constraints)
+        .then(stream => {
+          console.log('Camera stream started');
+          currentStream = stream;
+          video.srcObject = stream;
+
+          // Ensure video starts playing once metadata is loaded
+          video.onloadedmetadata = function () {
+            console.log('Video metadata loaded, starting video playback');
+            video.play(); // Ensure video starts playing
+          };
+
+          video.onerror = function (error) {
+            console.error('Video stream error: ', error);
+            alert('Error with video stream: ' + error.message);
+          };
+        })
+        .catch(error => {
+          console.error('Error accessing camera: ', error);
+          alert('Error accessing camera: ' + error.message);
+
+          // More specific error logging
+          if (error.name === 'NotAllowedError') {
+            alert('Camera permission denied. Please check your permissions.');
+          } else if (error.name === 'NotFoundError') {
+            alert('No camera found. Are you sure your device has a camera?');
+          } else {
+            alert('Unexpected error: ' + error.message);
+          }
+        });
+    }
+
+    // Function to get the list of available video devices (front/back cameras)
+    function getVideoDevices() {
+      return navigator.mediaDevices.enumerateDevices()
+        .then(devices => {
+          const videoDevices = devices.filter(device => device.kind === 'videoinput');
+          return videoDevices;
+        })
+        .catch(err => {
+          console.error('Error enumerating devices: ', err);
+          alert('Error enumerating devices: ' + err.message);
+        });
+    }
+
+    // Start video with default camera (usually front-facing)
+    getVideoDevices().then(videoDevices => {
+      // If no devices are found, alert and return
+      if (videoDevices.length === 0) {
+        alert('No video devices found.');
+        return;
+      }
+
+      // Get the first video device (typically the front camera)
+      currentDeviceId = videoDevices[0].deviceId;
+      startVideoStream(currentDeviceId);
+    });
+
+    // Button to capture the image
+    captureButton.addEventListener('click', () => {
+      if (video.srcObject) {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        const imageData = canvas.toDataURL('image/png');
+        capturedImage.src = imageData;
+        capturedImage.style.display = 'block';
+        video.style.display = 'none';
+        captureButton.style.display = 'none';
+      } else {
+        alert('Video stream is not available.');
+      }
+    });
+
+    // Button to swap the camera
+    swapCameraButton.addEventListener('click', () => {
+      getVideoDevices().then(videoDevices => {
+        if (videoDevices.length < 2) {
+          alert('No additional camera available.');
+          return;
+        }
+
+        // Find the other camera (swap between the first and second device)
+        const nextDeviceId = videoDevices.find(device => device.deviceId !== currentDeviceId).deviceId;
+        currentDeviceId = nextDeviceId;
+
+        // Restart the stream with the new camera
+        startVideoStream(currentDeviceId);
+      });
+    });
+
+    // Prevent fullscreen (clicking the video element should not make it fullscreen)
+    video.addEventListener('click', (event) => {
+      if (document.fullscreenElement) {
+        // If fullscreen mode is active, exit fullscreen
+        document.exitFullscreen();
+      }
+    });
+
+    // Disable fullscreen on iOS Safari (sometimes triggered by user interaction)
+    video.addEventListener('webkitfullscreenchange', function() {
+      if (document.webkitFullscreenElement) {
+        document.webkitExitFullscreen();
+      }
     });
   </script>
 
