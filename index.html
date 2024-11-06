@@ -84,235 +84,6 @@
 
     let currentStream;
     let currentDeviceId = null;
-
-    // Function to start the video stream
-    function startVideoStream(deviceId = null) {
-      const constraints = {
-        video: {
-          deviceId: deviceId ? { exact: deviceId } : undefined
-        }
-      };
-
-      // Stop current stream if exists
-      if (currentStream) {
-        const tracks = currentStream.getTracks();
-        tracks.forEach(track => track.stop());
-      }
-
-      navigator.mediaDevices.getUserMedia(constraints)
-        .then(stream => {
-          console.log('Camera stream started');
-          currentStream = stream;
-          video.srcObject = stream;
-
-          // Ensure video starts playing once metadata is loaded
-          video.onloadedmetadata = function () {
-            console.log('Video metadata loaded, starting video playback');
-            video.play(); // Ensure video starts playing
-          };
-
-          video.onerror = function (error) {
-            console.error('Video stream error: ', error);
-            alert('Error with video stream: ' + error.message);
-          };
-        })
-        .catch(error => {
-          console.error('Error accessing camera: ', error);
-          alert('Error accessing camera: ' + error.message);
-        });
-    }
-
-    // Function to get the list of available video devices (front/back cameras)
-    function getVideoDevices() {
-      return navigator.mediaDevices.enumerateDevices()
-        .then(devices => {
-          const videoDevices = devices.filter(device => device.kind === 'videoinput');
-          return videoDevices;
-        })
-        .catch(err => {
-          console.error('Error enumerating devices: ', err);
-          alert('Error enumerating devices: ' + err.message);
-        });
-    }
-
-    // Start video with default camera (usually front-facing)
-    getVideoDevices().then(videoDevices => {
-      if (videoDevices.length === 0) {
-        alert('No video devices found.');
-        return;
-      }
-
-      // Get the first video device (typically the front camera)
-      currentDeviceId = videoDevices[0].deviceId;
-      startVideoStream(currentDeviceId);
-    });
-
-    // Button to capture the image
-    captureButton.addEventListener('click', () => {
-      if (video.srcObject) {
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-        const imageData = canvas.toDataURL('image/png');
-        capturedImage.src = imageData;
-        capturedImage.style.display = 'block';
-        video.style.display = 'none';
-        captureButton.style.display = 'none';
-        recaptureButton.style.display = 'inline-block';  // Show the recapture button
-      } else {
-        alert('Video stream is not available.');
-      }
-    });
-
-    // Button to swap the camera
-    swapCameraButton.addEventListener('click', () => {
-      getVideoDevices().then(videoDevices => {
-        if (videoDevices.length < 2) {
-          alert('No additional camera available.');
-          return;
-        }
-
-        // Prevent fullscreen on iOS Safari/Chrome
-        exitFullscreen();
-
-        // Find the other camera (swap between the first and second device)
-        const nextDeviceId = videoDevices.find(device => device.deviceId !== currentDeviceId).deviceId;
-        currentDeviceId = nextDeviceId;
-
-        // Restart the stream with the new camera
-        startVideoStream(currentDeviceId);
-      });
-    });
-
-    // Exit fullscreen if the browser has triggered it (for iOS Safari/Chrome)
-    function exitFullscreen() {
-      if (document.fullscreenElement || document.webkitFullscreenElement) {
-        if (document.exitFullscreen) {
-          document.exitFullscreen();
-        } else if (document.webkitExitFullscreen) {
-          document.webkitExitFullscreen();
-        }
-      }
-    }
-
-    // Prevent fullscreen on touch events for iOS Safari/Chrome
-    function preventFullscreen(event) {
-      if (event.target === video) {
-        event.preventDefault(); // Prevent fullscreen
-      }
-    }
-
-    // Attach listeners to prevent fullscreen
-    video.addEventListener('touchstart', preventFullscreen, { passive: false });
-    video.addEventListener('click', preventFullscreen, { passive: false });
-
-    // Ensure the video keeps playing after exiting fullscreen
-    video.onfullscreenchange = function () {
-      if (!document.fullscreenElement && !document.webkitFullscreenElement) {
-        video.play();
-      }
-    };
-
-    // Button to re-capture the image
-    recaptureButton.addEventListener('click', () => {
-      capturedImage.style.display = 'none';
-      captureButton.style.display = 'inline-block';
-      recaptureButton.style.display = 'none';
-      video.style.display = 'block';
-    });
-  </script>
-
-</body>
-</html>
--->
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Capture Photo</title>
-  <style>
-    /* Video display and styling */
-    #video {
-      width: 100%;
-      height: auto;
-      object-fit: cover;
-      border: 2px solid #ccc;
-    }
-
-    #capture {
-      display: block;
-      margin: 20px auto;
-      padding: 10px 20px;
-      background-color: #007BFF;
-      color: white;
-      border: none;
-      font-size: 16px;
-      cursor: pointer;
-    }
-
-    #capture:hover {
-      background-color: #0056b3;
-    }
-
-    #capturedImage {
-      max-width: 100%;
-      margin-top: 20px;
-      display: none;
-    }
-
-    #recapture {
-      display: none;
-      padding: 10px 20px;
-      background-color: #28a745;
-      color: white;
-      border: none;
-      font-size: 16px;
-      cursor: pointer;
-    }
-
-    #recapture:hover {
-      background-color: #218838;
-    }
-
-    .container {
-      text-align: center;
-      max-width: 600px;
-      margin: 0 auto;
-    }
-
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-      background-color: #f4f4f9;
-    }
-  </style>
-</head>
-<body>
-
-  <h1>Capture Photo</h1>
-  <div class="container">
-    <video id="video" autoplay muted playsinline></video>
-    <button id="capture">Capture</button>
-    <button id="swapCamera">Swap Camera</button>
-    <canvas id="canvas" style="display:none;"></canvas>
-    <img id="capturedImage" />
-    <button id="recapture">Re-capture</button>
-  </div>
-
-  <script>
-    const video = document.getElementById('video');
-    const canvas = document.getElementById('canvas');
-    const context = canvas.getContext('2d');
-    const captureButton = document.getElementById('capture');
-    const swapCameraButton = document.getElementById('swapCamera');
-    const capturedImage = document.getElementById('capturedImage');
-    const recaptureButton = document.getElementById('recapture');
-
-    let currentStream;
-    let currentDeviceId = null;
     let videoWidth = 640; // Default video resolution
     let videoHeight = 480;
 
@@ -464,5 +235,273 @@
     });
   </script>
 
+</body>
+</html>
+-->
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Capture Photo and Upload to Google Drive</title>
+  <style>
+    /* Styling for video display and buttons */
+    #video {
+      width: 100%;
+      height: auto;
+      object-fit: cover;
+      border: 2px solid #ccc;
+    }
+
+    #capture {
+      display: block;
+      margin: 20px auto;
+      padding: 10px 20px;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    #capture:hover {
+      background-color: #0056b3;
+    }
+
+    #capturedImage {
+      max-width: 100%;
+      margin-top: 20px;
+      display: none;
+    }
+
+    #recapture {
+      display: none;
+      padding: 10px 20px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    #recapture:hover {
+      background-color: #218838;
+    }
+
+    .container {
+      text-align: center;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background-color: #f4f4f9;
+    }
+  </style>
+  <!-- Google API Library -->
+  <script src="https://apis.google.com/js/api.js"></script>
+  <script src="https://apis.google.com/js/platform.js"></script>
+</head>
+<body>
+
+  <h1>Capture Photo and Upload to Google Drive</h1>
+  <div class="container">
+    <video id="video" autoplay muted playsinline></video>
+    <button id="capture">Capture</button>
+    <button id="swapCamera">Swap Camera</button>
+    <canvas id="canvas" style="display:none;"></canvas>
+    <img id="capturedImage" />
+    <button id="recapture">Re-capture</button>
+  </div>
+
+  <script>
+    // Global variables and elements
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const context = canvas.getContext('2d');
+    const captureButton = document.getElementById('capture');
+    const swapCameraButton = document.getElementById('swapCamera');
+    const capturedImage = document.getElementById('capturedImage');
+    const recaptureButton = document.getElementById('recapture');
+
+    let currentStream;
+    let currentDeviceId = null;
+    let videoWidth = 640;
+    let videoHeight = 480;
+    let googleAuth;
+
+    // Initialize Google API client
+    function initGoogleAPI() {
+      gapi.load('client:auth2', () => {
+        gapi.auth2.init({
+          client_id: '236823481359-bah6saog9au93shs6rmpg1ss9am0jnu1.apps.googleusercontent.com',
+        }).then(() => {
+          googleAuth = gapi.auth2.getAuthInstance();
+        });
+      });
+    }
+
+    // Authenticate the user with Google
+    function authenticate() {
+      googleAuth.signIn().then(() => {
+        console.log('User signed in');
+      }).catch(error => {
+        console.error('Google sign-in error:', error);
+        alert('Google sign-in error: ' + error.message);
+      });
+    }
+
+    // Start video stream (camera)
+    function startVideoStream(deviceId = null) {
+      const constraints = {
+        video: {
+          deviceId: deviceId ? { exact: deviceId } : undefined,
+          width: { ideal: 1920 },
+          height: { ideal: 1080 },
+        }
+      };
+
+      if (currentStream) {
+        const tracks = currentStream.getTracks();
+        tracks.forEach(track => track.stop());
+      }
+
+      navigator.mediaDevices.getUserMedia(constraints)
+        .then(stream => {
+          console.log('Camera stream started');
+          currentStream = stream;
+          video.srcObject = stream;
+
+          video.onloadedmetadata = function () {
+            video.play();
+            videoWidth = video.videoWidth;
+            videoHeight = video.videoHeight;
+            canvas.width = videoWidth;
+            canvas.height = videoHeight;
+          };
+
+          video.onerror = function (error) {
+            console.error('Video stream error:', error);
+            alert('Error with video stream: ' + error.message);
+          };
+        })
+        .catch(error => {
+          console.error('Error accessing camera:', error);
+          alert('Error accessing camera: ' + error.message);
+        });
+    }
+
+    // Get available video devices (cameras)
+    function getVideoDevices() {
+      return navigator.mediaDevices.enumerateDevices()
+        .then(devices => {
+          const videoDevices = devices.filter(device => device.kind === 'videoinput');
+          return videoDevices;
+        })
+        .catch(err => {
+          console.error('Error enumerating devices:', err);
+          alert('Error enumerating devices: ' + err.message);
+        });
+    }
+
+    // Upload image to Google Drive
+    function uploadImageToGoogleDrive(imageData) {
+      const fileBlob = dataURLToBlob(imageData);
+      const fileMetadata = {
+        'name': 'captured_image.png',
+        'mimeType': 'image/png'
+      };
+      const media = {
+        mimeType: 'image/png',
+        body: fileBlob
+      };
+
+      gapi.client.drive.files.create({
+        resource: fileMetadata,
+        media: media,
+        fields: 'id'
+      }).then(response => {
+        console.log('File uploaded to Google Drive:', response);
+        const fileId = response.result.id;
+        displayImageOnExternalDisplay(fileId);
+      }).catch(error => {
+        console.error('Error uploading to Google Drive:', error);
+      });
+    }
+
+    // Convert Data URL to Blob
+    function dataURLToBlob(dataURL) {
+      const byteString = atob(dataURL.split(',')[1]);
+      const arrayBuffer = new ArrayBuffer(byteString.length);
+      const uint8Array = new Uint8Array(arrayBuffer);
+      for (let i = 0; i < byteString.length; i++) {
+        uint8Array[i] = byteString.charCodeAt(i);
+      }
+      return new Blob([uint8Array], { type: 'image/png' });
+    }
+
+    // Display image on external display (simple approach)
+    function displayImageOnExternalDisplay(fileId) {
+      const imageUrl = `https://drive.google.com/uc?id=${fileId}`;
+
+      // Example: Display the image in an <img> tag on the page
+      const img = new Image();
+      img.src = imageUrl;
+      img.onload = () => {
+        document.body.appendChild(img);  // Display image on the page
+      };
+
+      // You can extend this to use Google Cast SDK or WebSockets for real external display
+    }
+
+    // Capture photo on capture button click
+    captureButton.addEventListener('click', () => {
+      if (video.srcObject) {
+        canvas.width = videoWidth;
+        canvas.height = videoHeight;
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        const imageData = canvas.toDataURL('image/png', 1.0); // High quality
+        uploadImageToGoogleDrive(imageData);
+
+        capturedImage.src = imageData;
+        capturedImage.style.display = 'block';
+        video.style.display = 'none';
+        captureButton.style.display = 'none';
+        recaptureButton.style.display = 'inline-block';  // Show the recapture button
+      } else {
+        alert('Video stream is not available.');
+      }
+    });
+
+    // Button to swap camera
+    swapCameraButton.addEventListener('click', () => {
+      getVideoDevices().then(videoDevices => {
+        if (videoDevices.length < 2) {
+          alert('No additional camera available.');
+          return;
+        }
+        const nextDeviceId = videoDevices.find(device => device.deviceId !== currentDeviceId).deviceId;
+        currentDeviceId = nextDeviceId;
+        startVideoStream(currentDeviceId);
+      });
+    });
+
+    // Button to re-capture the image
+    recaptureButton.addEventListener('click', () => {
+      capturedImage.style.display = 'none';
+      captureButton.style.display = 'inline-block';
+      recaptureButton.style.display = 'none';
+      video.style.display = 'block';
+    });
+
+    // Initialize Google API on page load
+    window.onload = initGoogleAPI;
+
+  </script>
 </body>
 </html>
