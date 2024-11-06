@@ -180,14 +180,41 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Camera Stream Test</title>
+  <title>Capture Photo</title>
   <style>
+    /* Video display and styling */
     #video {
       width: 100%;
-      height: 400px; /* Make the video element large enough to be seen */
+      height: auto;
       object-fit: cover;
-      background-color: black; /* Show a black background while loading */
       border: 2px solid #ccc;
+    }
+
+    #capture {
+      display: block;
+      margin: 20px auto;
+      padding: 10px 20px;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    #capture:hover {
+      background-color: #0056b3;
+    }
+
+    #capturedImage {
+      max-width: 100%;
+      margin-top: 20px;
+      display: none;
+    }
+
+    .container {
+      text-align: center;
+      max-width: 600px;
+      margin: 0 auto;
     }
 
     body {
@@ -195,76 +222,126 @@
       padding: 20px;
       background-color: #f4f4f9;
     }
-
-    #status {
-      font-size: 16px;
-      color: green;
-    }
   </style>
 </head>
 <body>
 
-  <h1>Test Camera Access</h1>
-  <video id="video" autoplay muted></video>
-  <p id="status">Trying to access your camera...</p>
+  <h1>Capture Photo</h1>
+  <div class="container">
+    <video id="video" autoplay muted></video>
+    <button id="capture">Capture</button>
+    <button id="swapCamera">Swap Camera</button>
+    <canvas id="canvas" style="display:none;"></canvas>
+    <img id="capturedImage" />
+  </div>
 
   <script>
     const video = document.getElementById('video');
-    const status = document.getElementById('status');
+    const canvas = document.getElementById('canvas');
+    const context = canvas.getContext('2d');
+    const captureButton = document.getElementById('capture');
+    const swapCameraButton = document.getElementById('swapCamera');
+    const capturedImage = document.getElementById('capturedImage');
+
+    let currentStream;
+    let currentDeviceId = null;
 
     // Function to start the video stream
-    function startVideoStream() {
+    function startVideoStream(deviceId = null) {
       const constraints = {
         video: {
-          facingMode: "user" // Use the front camera
+          deviceId: deviceId ? { exact: deviceId } : undefined
         }
       };
 
-      // Request video stream
+      // Stop current stream if exists
+      if (currentStream) {
+        const tracks = currentStream.getTracks();
+        tracks.forEach(track => track.stop());
+      }
+
       navigator.mediaDevices.getUserMedia(constraints)
         .then(stream => {
           console.log('Camera stream started');
+          currentStream = stream;
+          video.srcObject = stream;
 
-          // Log all available tracks in the stream for debugging
-          const tracks = stream.getTracks();
-          console.log('Tracks in the stream:', tracks);
-
-          // Check if the video track is available
-          const videoTrack = tracks.find(track => track.kind === 'video');
-          if (videoTrack) {
-            console.log('Video track is available');
-          } else {
-            console.log('No video track found');
-          }
-
-          // Try using createObjectURL as a fallback for Safari compatibility
-          const streamURL = URL.createObjectURL(stream);
-
-          // Assign the URL to the video element
-          video.src = streamURL;
-
-          // Handle the video stream once it starts playing
-          video.oncanplay = function () {
-            console.log('Video can play now');
-            video.play(); // Explicitly call play()
-            status.textContent = 'Camera access granted. Displaying video stream.';
+          // Check if the video has started playing
+          video.onloadedmetadata = function () {
+            console.log('Video metadata loaded, starting video playback');
+            video.play(); // Ensure video starts playing
           };
 
-          // Handle any errors in the video element
           video.onerror = function (error) {
-            console.error('Error in video stream: ', error);
-            status.textContent = 'Error in video stream: ' + error.message;
+            console.error('Video stream error: ', error);
+            alert('Error with video stream: ' + error.message);
           };
-
         })
         .catch(error => {
           console.error('Error accessing camera: ', error);
-          status.textContent = 'Error accessing camera: ' + error.message;
+          alert('Error accessing camera: ' + error.message);
         });
     }
 
-    // Start the video stream
-    startVideoStream();
+    // Function to get the list of available video devices (front/back cameras)
+    function getVideoDevices() {
+      return navigator.mediaDevices.enumerateDevices()
+        .then(devices => {
+          const videoDevices = devices.filter(device => device.kind === 'videoinput');
+          return videoDevices;
+        })
+        .catch(err => {
+          console.error('Error enumerating devices: ', err);
+          alert('Error enumerating devices: ' + err.message);
+        });
+    }
+
+    // Start video with default camera (usually front-facing)
+    getVideoDevices().then(videoDevices => {
+      // If no devices are found, alert and return
+      if (videoDevices.length === 0) {
+        alert('No video devices found.');
+        return;
+      }
+
+      // Get the first video device (typically the front camera)
+      currentDeviceId = videoDevices[0].deviceId;
+      startVideoStream(currentDeviceId);
+    });
+
+    // Button to capture the image
+    captureButton.addEventListener('click', () => {
+      if (video.srcObject) {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        const imageData = canvas.toDataURL('image/png');
+        capturedImage.src = imageData;
+        capturedImage.style.display = 'block';
+        video.style.display = 'none';
+        captureButton.style.display = 'none';
+      } else {
+        alert('Video stream is not available.');
+      }
+    });
+
+    // Button to swap the camera
+    swapCameraButton.addEventListener('click', () => {
+      getVideoDevices().then(videoDevices => {
+        if (videoDevices.length < 2) {
+          alert('No additional camera available.');
+          return;
+        }
+
+        // Find the other camera (swap between the first and second device)
+        const nextDeviceId = videoDevices.find(device => device.deviceId !== currentDeviceId).deviceId;
+        currentDeviceId = nextDeviceId;
+
+        // Restart the stream with the new camera
+        startVideoStream(currentDeviceId);
+      });
+    });
   </script>
 
 </body>
