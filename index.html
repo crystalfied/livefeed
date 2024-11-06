@@ -252,7 +252,7 @@
   <div class="container">
     <video id="video" autoplay muted playsinline></video>
     <button id="capture">Capture</button>
-    <button id="swapCamera">Swap Camera</button>
+    <button id="swapCamera" style="display:none;">Swap Camera</button>
     <canvas id="canvas" style="display:none;"></canvas>
     <img id="capturedImage" />
     <button id="recapture">Re-capture</button>
@@ -298,7 +298,12 @@
     function checkAuthStatus() {
       if (!gapi.auth2.getAuthInstance().isSignedIn.get()) {
         console.log('User is not signed in. Signing in...');
-        gapi.auth2.getAuthInstance().signIn();  // Sign in the user if they are not signed in
+        gapi.auth2.getAuthInstance().signIn().then(() => {
+          console.log('User signed in');
+        }).catch((error) => {
+          console.error('Sign-in failed: ', error);
+          alert('You need to sign in to upload images');
+        });
       } else {
         console.log('User is signed in');
       }
@@ -347,12 +352,20 @@
           videoDevices = devices.filter(device => device.kind === 'videoinput');
           console.log("Available video devices:", videoDevices);  // Debug log
 
+          // Show the swap button only if there are multiple cameras
           if (videoDevices.length >= 2) {
-            swapCameraButton.style.display = 'inline-block'; // Show swap button if multiple cameras exist
+            swapCameraButton.style.display = 'inline-block'; // Show swap button
           } else {
-            swapCameraButton.style.display = 'none'; // Hide swap button if only one camera
+            swapCameraButton.style.display = 'none'; // Hide swap button
           }
-          return videoDevices;
+
+          // If there are any video devices, set the currentDeviceId to the first one
+          if (videoDevices.length > 0) {
+            currentDeviceId = videoDevices[0].deviceId;
+            startVideoStream(currentDeviceId); // Start the stream with the first camera
+          } else {
+            alert('No video devices found.');
+          }
         })
         .catch(err => {
           console.error('Error enumerating devices: ', err);
@@ -367,7 +380,7 @@
         return;
       }
 
-      // Swap between the front and back camera by toggling deviceId
+      // Find the next camera (toggle between the front and back camera)
       const nextDevice = videoDevices.find(device => device.deviceId !== currentDeviceId);
       if (nextDevice) {
         currentDeviceId = nextDevice.deviceId;
@@ -449,14 +462,7 @@
     // Initialize on page load
     window.onload = function () {
       loadGoogleAPI();
-      getVideoDevices().then(() => {
-        if (videoDevices.length > 0) {
-          currentDeviceId = videoDevices[0].deviceId;
-          startVideoStream(currentDeviceId);
-        } else {
-          alert('No video devices found.');
-        }
-      });
+      getVideoDevices(); // Get available video devices
     };
   </script>
 </body>
