@@ -313,16 +313,16 @@
 
     let currentStream;
     let currentDeviceId = null;
-    let videoWidth = 1280; // Default resolution
-    let videoHeight = 720;
+    let videoWidth = 640; // Default video resolution
+    let videoHeight = 480;
 
     // Function to start the video stream with higher resolution
     function startVideoStream(deviceId = null) {
       const constraints = {
         video: {
           deviceId: deviceId ? { exact: deviceId } : undefined,
-          width: { ideal: videoWidth }, // Request a higher resolution
-          height: { ideal: videoHeight }, // Request a higher resolution
+          width: { ideal: 1280 }, // Request a higher resolution
+          height: { ideal: 720 }, // Request a higher resolution
         }
       };
 
@@ -342,10 +342,10 @@
           video.onloadedmetadata = function () {
             console.log('Video metadata loaded, starting video playback');
             video.play();
-            // Update the canvas size to match video resolution
             videoWidth = video.videoWidth;
             videoHeight = video.videoHeight;
 
+            // Set canvas size to match video size
             canvas.width = videoWidth;
             canvas.height = videoHeight;
           };
@@ -392,12 +392,10 @@
         // Ensure the canvas matches the resolution of the video stream
         canvas.width = videoWidth;
         canvas.height = videoHeight;
-
-        // Draw the video to the canvas at the native resolution
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-        // Convert to PNG image with highest quality
-        const imageData = canvas.toDataURL('image/png', 1.0); // Quality is set to maximum
+        // Convert to PNG image with high quality
+        const imageData = canvas.toDataURL('image/png', 1.0); // High quality
         capturedImage.src = imageData;
         capturedImage.style.display = 'block';
         video.style.display = 'none';
