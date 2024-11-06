@@ -188,10 +188,17 @@
       object-fit: cover;
       border: 2px solid #ccc;
     }
+
     body {
       font-family: Arial, sans-serif;
       padding: 20px;
       background-color: #f4f4f9;
+    }
+
+    /* Added a debug message for visibility */
+    #status {
+      font-size: 16px;
+      color: green;
     }
   </style>
 </head>
@@ -219,12 +226,19 @@
           console.log('Camera stream started');
           video.srcObject = stream;
 
-          video.onloadedmetadata = function () {
-            console.log('Video metadata loaded');
-            status.textContent = 'Camera access granted. Displaying video stream.';
-            video.play(); // Ensure video starts playing
+          // Add event listeners for when the video is ready to play
+          video.oncanplay = function () {
+            console.log('Video can play now');
+            video.play();
           };
 
+          // Handle the play event
+          video.onplay = function () {
+            console.log('Video is playing');
+            status.textContent = 'Camera access granted. Displaying video stream.';
+          };
+
+          // If video fails to play
           video.onerror = function (error) {
             console.error('Error in video stream: ', error);
             status.textContent = 'Error in video stream: ' + error.message;
@@ -242,3 +256,4 @@
 
 </body>
 </html>
+
