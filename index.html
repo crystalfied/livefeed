@@ -283,7 +283,7 @@
     function initClient() {
       gapi.client.init({
         apiKey: 'AIzaSyBIlo97y4-eTNyYbyvBgSyh866u0qpCDWc', // Replace with your API key
-        clientId: '236823481359-bah6saog9au93shs6rmpg1ss9am0jnu1.apps.googleusercontent.com', // Replace with your client ID
+        clientId: '236823481359-bah6saog9au93shs6rmpg1ss9am0jnu1.apps.googleusercontent.com236823481359-bah6saog9au93shs6rmpg1ss9am0jnu1.apps.googleusercontent.com', // Replace with your client ID
         discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"],
         scope: 'https://www.googleapis.com/auth/drive.file',
       }).then(() => {
@@ -298,7 +298,19 @@
     function checkAuthStatus() {
       gapi.auth2.getAuthInstance().isSignedIn.listen(handleSignInStatus);
       if (!gapi.auth2.getAuthInstance().isSignedIn.get()) {
+        console.log('User is not signed in. Signing in...');
         gapi.auth2.getAuthInstance().signIn();  // Sign in the user if they are not signed in
+      } else {
+        console.log('User is signed in');
+      }
+    }
+
+    // Handle sign-in status change
+    function handleSignInStatus(isSignedIn) {
+      if (isSignedIn) {
+        console.log('User is signed in');
+      } else {
+        console.log('User is not signed in');
       }
     }
 
@@ -345,6 +357,8 @@
           console.log("Available video devices:", videoDevices);  // Debug log
           if (videoDevices.length < 2) {
             swapCameraButton.style.display = 'none'; // Hide swap button if no additional camera exists
+          } else {
+            swapCameraButton.style.display = 'inline-block'; // Show swap button if multiple cameras exist
           }
           return videoDevices;
         })
@@ -406,28 +420,36 @@
         body: dataURItoBlob(imageData),
       };
 
-      gapi.client.drive.files.create({
-        resource: fileMetadata,
-        media: media,
-        fields: 'id',
-      }).then((response) => {
-        console.log('File uploaded successfully', response);
-        alert('Image uploaded to Google Drive');
-      }).catch((error) => {
-        console.error('Error uploading file: ', error);
-        alert('Failed to upload image');
-      });
+      // Make sure user is signed in
+      if (gapi.auth2.getAuthInstance().isSignedIn.get()) {
+        gapi.client.drive.files.create({
+          resource: fileMetadata,
+          media: media,
+          fields: 'id',
+        }).then((response) => {
+          console.log('File uploaded successfully', response);
+          alert('Image uploaded to Google Drive');
+        }).catch((error) => {
+          console.error('Error uploading file: ', error);
+          alert('Failed to upload image: ' + error.message); // Better error message
+        });
+      } else {
+        console.log('User is not signed in!');
+        alert('You need to sign in to upload the image');
+      }
     }
 
     // Helper function to convert the data URL to a Blob
     function dataURItoBlob(dataURI) {
       const byteString = atob(dataURI.split(',')[1]);
       const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+
       const arrayBuffer = new ArrayBuffer(byteString.length);
       const uintArray = new Uint8Array(arrayBuffer);
       for (let i = 0; i < byteString.length; i++) {
         uintArray[i] = byteString.charCodeAt(i);
       }
+
       return new Blob([uintArray], { type: mimeString });
     }
 
