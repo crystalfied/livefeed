@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Capture Photo</title>
+</head>
+<body>
+  <h1>Capture Photo</h1>
+  <video id="video" width="100%" height="auto" autoplay></video>
+  <button id="capture">Capture</button>
+  <canvas id="canvas" style="display:none;"></canvas>
+  <img id="capturedImage" style="max-width:100%;" />
+  
+  <script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const context = canvas.getContext('2d');
+    const captureButton = document.getElementById('capture');
+    const capturedImage = document.getElementById('capturedImage');
+
+    // Start the video stream from the phone's camera
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(stream => {
+        video.srcObject = stream;
+      })
+      .catch(err => console.error('Error accessing camera: ', err));
+
+    // Capture the photo when the button is clicked
+    captureButton.addEventListener('click', () => {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      capturedImage.src = canvas.toDataURL('image/png');
+    });
+  </script>
+</body>
+</html>
