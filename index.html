@@ -283,20 +283,19 @@
     function initClient() {
       gapi.client.init({
         apiKey: 'AIzaSyBIlo97y4-eTNyYbyvBgSyh866u0qpCDWc', // Replace with your API key
-        clientId: '236823481359-bah6saog9au93shs6rmpg1ss9am0jnu1.apps.googleusercontent.com236823481359-bah6saog9au93shs6rmpg1ss9am0jnu1.apps.googleusercontent.com', // Replace with your client ID
+        clientId: '236823481359-bah6saog9au93shs6rmpg1ss9am0jnu1.apps.googleusercontent.com', // Replace with your client ID
         discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"],
         scope: 'https://www.googleapis.com/auth/drive.file',
       }).then(() => {
         console.log("Google API client initialized.");
-        checkAuthStatus(); // Check if the user is already signed in
+        checkAuthStatus(); // Ensure the user is signed in
       }).catch(error => {
         console.error("Error initializing Google API client", error);
       });
     }
 
-    // Check if the user is signed in
+    // Ensure user is signed in or sign them in
     function checkAuthStatus() {
-      gapi.auth2.getAuthInstance().isSignedIn.listen(handleSignInStatus);
       if (!gapi.auth2.getAuthInstance().isSignedIn.get()) {
         console.log('User is not signed in. Signing in...');
         gapi.auth2.getAuthInstance().signIn();  // Sign in the user if they are not signed in
@@ -305,20 +304,12 @@
       }
     }
 
-    // Handle sign-in status change
-    function handleSignInStatus(isSignedIn) {
-      if (isSignedIn) {
-        console.log('User is signed in');
-      } else {
-        console.log('User is not signed in');
-      }
-    }
-
     // Start video stream
     function startVideoStream(deviceId = null) {
       const constraints = {
         video: {
           deviceId: deviceId ? { exact: deviceId } : undefined,
+          facingMode: 'environment', // Prefer back camera on mobile
           width: { ideal: 1280 },
           height: { ideal: 720 },
         }
@@ -355,6 +346,7 @@
         .then(devices => {
           videoDevices = devices.filter(device => device.kind === 'videoinput');
           console.log("Available video devices:", videoDevices);  // Debug log
+
           if (videoDevices.length < 2) {
             swapCameraButton.style.display = 'none'; // Hide swap button if no additional camera exists
           } else {
