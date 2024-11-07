@@ -568,7 +568,7 @@ CAN AUTO UPLOAD GOOGLE ACC THAT I LOGIN TO-->
 
     // Redirect user to Imgur to authenticate and authorize the app
     function redirectToImgurAuth() {
-      const redirectUri = encodeURIComponent('https://crystalfied.github.io/livefeed76/'); // Update with your callback URL
+      const redirectUri = encodeURIComponent('https://crystalfied.github.io/livefeed78/'); // Update with your callback URL
       const authUrl = `${OAUTH_URL}?client_id=${CLIENT_ID}&response_type=code&state=123&redirect_uri=${redirectUri}`;
       window.location.href = authUrl;
     }
@@ -580,7 +580,7 @@ CAN AUTO UPLOAD GOOGLE ACC THAT I LOGIN TO-->
         client_secret: CLIENT_SECRET,
         code: code,
         grant_type: 'authorization_code',
-        redirect_uri: 'https://crystalfied.github.io/livefeed76/' // Update with your callback URL
+        redirect_uri: 'https://crystalfied.github.io/livefeed78/' // Update with your callback URL
       };
 
       fetch(ACCESS_TOKEN_URL, {
