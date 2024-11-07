@@ -484,8 +484,8 @@ CAN AUTO UPLOAD GOOGLE ACC THAT I LOGIN TO-->
 
   <script>
     // Imgur client ID and OAuth URLs
-    const CLIENT_ID = 'e19816b99c2c3ec'; // Replace with your Imgur Client ID
-    const CLIENT_SECRET = '3c4185b38a3c7bf59aeecf82f910d1903abb5b7e'; // Replace with your Imgur Client Secret
+    const CLIENT_ID = '80cfe0d2cc13ec4'; // Replace with your Imgur Client ID
+    const CLIENT_SECRET = '62f9e7a3edceea3f2df1e936ad32d5bd2b6e97e7'; // Replace with your Imgur Client Secret
     const OAUTH_URL = 'https://api.imgur.com/oauth2/authorize';
     const TOKEN_URL = 'https://api.imgur.com/oauth2/token';
     const SCOPES = 'account'; // Required scope to upload images to the account
@@ -609,11 +609,16 @@ CAN AUTO UPLOAD GOOGLE ACC THAT I LOGIN TO-->
     window.onload = function() {
       startVideoStream();
 
+      // Check if there's an authorization code in the URL
       const urlParams = new URLSearchParams(window.location.search);
       const code = urlParams.get('code');
 
+      // If there's an authorization code, exchange it for an access token
       if (code) {
-        getAccessTokenFromCode(code);  // Get token if callback URL has a code
+        getAccessTokenFromCode(code);
+      } else {
+        // If no access token is found, prompt for authentication
+        redirectToImgurAuth();
       }
     };
   </script>
