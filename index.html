@@ -239,7 +239,7 @@
 </html>
 -->
 
-
+<!-- CAN AUTO UPLOAD GOOGLE ACC THAT I LOGIN TO
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -279,7 +279,7 @@
     <button id="authButton" onclick="handleAuthClick()">Sign In with Google</button>
   </div>
 
-  <!-- Include GIS client library -->
+  // Include GIS client library
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script src="https://apis.google.com/js/api.js"></script>
 
@@ -454,6 +454,236 @@
         }
       });
     };
+  </script>
+
+</body>
+</html>
+CAN AUTO UPLOAD GOOGLE ACC THAT I LOGIN TO-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Capture and Upload Photo to Imgur</title>
+  <style>
+    /* Video display and styling */
+    #video {
+      width: 100%;
+      height: auto;
+      object-fit: cover;
+      border: 2px solid #ccc;
+    }
+
+    #capture {
+      display: block;
+      margin: 20px auto;
+      padding: 10px 20px;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    #capture:hover {
+      background-color: #0056b3;
+    }
+
+    #capturedImage {
+      max-width: 100%;
+      margin-top: 20px;
+      display: none;
+    }
+
+    #recapture {
+      display: none;
+      padding: 10px 20px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    #recapture:hover {
+      background-color: #218838;
+    }
+
+    #swapCamera {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background-color: #FFC107;
+      color: white;
+      border: none;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    #swapCamera:hover {
+      background-color: #E0A800;
+    }
+
+    .container {
+      text-align: center;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background-color: #f4f4f9;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Capture and Upload Photo to Imgur</h1>
+  <div class="container">
+    <video id="video" autoplay muted playsinline></video>
+    <button id="capture">Capture</button>
+    <button id="swapCamera">Swap Camera</button>
+    <canvas id="canvas" style="display:none;"></canvas>
+    <img id="capturedImage" />
+    <button id="recapture">Re-capture</button>
+  </div>
+
+  <script>
+    const IMGUR_CLIENT_ID = 'f8bde4e32b26acc'; // Replace with your Imgur Client ID
+
+    let currentStream;
+    let currentDeviceId = null;
+    let videoWidth = 640;
+    let videoHeight = 480;
+
+    // Function to start the video stream
+    function startVideoStream(deviceId = null) {
+      const constraints = {
+        video: {
+          deviceId: deviceId ? { exact: deviceId } : undefined,
+          width: { ideal: 1920 },
+          height: { ideal: 1080 },
+        }
+      };
+
+      if (currentStream) {
+        const tracks = currentStream.getTracks();
+        tracks.forEach(track => track.stop());
+      }
+
+      navigator.mediaDevices.getUserMedia(constraints)
+        .then(stream => {
+          currentStream = stream;
+          document.getElementById('video').srcObject = stream;
+
+          document.getElementById('video').onloadedmetadata = function() {
+            document.getElementById('video').play();
+            videoWidth = document.getElementById('video').videoWidth;
+            videoHeight = document.getElementById('video').videoHeight;
+          };
+        })
+        .catch(error => {
+          console.error('Error accessing camera: ', error);
+          alert('Error accessing camera: ' + error.message);
+        });
+    }
+
+    // Function to swap the camera (front/back)
+    function swapCamera() {
+      navigator.mediaDevices.enumerateDevices()
+        .then(devices => {
+          const videoDevices = devices.filter(device => device.kind === 'videoinput');
+          if (videoDevices.length < 2) {
+            alert('No additional camera available.');
+            return;
+          }
+          const nextDeviceId = videoDevices.find(device => device.deviceId !== currentDeviceId).deviceId;
+          currentDeviceId = nextDeviceId;
+          startVideoStream(currentDeviceId);
+        })
+        .catch(err => {
+          console.error('Error enumerating devices: ', err);
+          alert('Error enumerating devices: ' + err.message);
+        });
+    }
+
+    // Capture image from video
+    document.getElementById('capture').addEventListener('click', () => {
+      const canvas = document.getElementById('canvas');
+      const context = canvas.getContext('2d');
+      canvas.width = videoWidth;
+      canvas.height = videoHeight;
+      context.drawImage(document.getElementById('video'), 0, 0, canvas.width, canvas.height);
+
+      // Convert to PNG image
+      const imageData = canvas.toDataURL('image/png');
+      document.getElementById('capturedImage').src = imageData;
+      document.getElementById('capturedImage').style.display = 'block';
+      document.getElementById('video').style.display = 'none';
+      document.getElementById('capture').style.display = 'none';
+      document.getElementById('recapture').style.display = 'inline-block';  // Show recapture button
+
+      // Upload image to Imgur
+      uploadToImgur(imageData);
+    });
+
+    // Re-capture the image
+    document.getElementById('recapture').addEventListener('click', () => {
+      document.getElementById('capturedImage').style.display = 'none';
+      document.getElementById('capture').style.display = 'inline-block';
+      document.getElementById('recapture').style.display = 'none';
+      document.getElementById('video').style.display = 'block';
+    });
+
+    // Function to upload the image to Imgur
+    function uploadToImgur(imageData) {
+      const formData = new FormData();
+      const imageBlob = dataURItoBlob(imageData);
+      formData.append('image', imageBlob);
+
+      fetch('https://api.imgur.com/3/upload', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Client-ID ${IMGUR_CLIENT_ID}`
+        },
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log('Image uploaded to Imgur:', data.data.link);
+        alert('Image uploaded to Imgur! You can view it at: ' + data.data.link);
+      })
+      .catch(error => console.error('Error uploading image:', error));
+    }
+
+    // Helper function to convert base64 to Blob
+    function dataURItoBlob(dataURI) {
+      const byteString = atob(dataURI.split(',')[1]);
+      const arrayBuffer = new ArrayBuffer(byteString.length);
+      const uint8Array = new Uint8Array(arrayBuffer);
+      for (let i = 0; i < byteString.length; i++) {
+        uint8Array[i] = byteString.charCodeAt(i);
+      }
+      return new Blob([uint8Array], { type: 'image/png' });
+    }
+
+    // Initialize video stream
+    window.onload = function() {
+      navigator.mediaDevices.enumerateDevices().then(devices => {
+        const videoDevices = devices.filter(device => device.kind === 'videoinput');
+        if (videoDevices.length > 0) {
+          currentDeviceId = videoDevices[0].deviceId;
+          startVideoStream(currentDeviceId);
+        } else {
+          alert('No video devices found.');
+        }
+      });
+    };
+
+    // Swap camera functionality
+    document.getElementById('swapCamera').addEventListener('click', swapCamera);
+
   </script>
 
 </body>
