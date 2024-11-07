@@ -552,8 +552,8 @@ CAN AUTO UPLOAD GOOGLE ACC THAT I LOGIN TO-->
 
   <script>
     // Imgur OAuth and API credentials
-    const CLIENT_ID = 'YOUR_CLIENT_ID'; // Replace with your Imgur Client ID
-    const CLIENT_SECRET = 'YOUR_CLIENT_SECRET'; // Replace with your Imgur Client Secret
+    const CLIENT_ID = '80cfe0d2cc13ec4'; // Replace with your Imgur Client ID
+    const CLIENT_SECRET = '5c9c4feba1ea519cac8cb69dc6602aa63fadbf56'; // Replace with your Imgur Client Secret
     const OAUTH_URL = 'https://api.imgur.com/oauth2/authorize'; 
     const ACCESS_TOKEN_URL = 'https://api.imgur.com/oauth2/token';
     const API_URL = 'https://api.imgur.com/3/image'; 
@@ -568,7 +568,7 @@ CAN AUTO UPLOAD GOOGLE ACC THAT I LOGIN TO-->
 
     // Redirect user to Imgur to authenticate and authorize the app
     function redirectToImgurAuth() {
-      const redirectUri = encodeURIComponent('http://localhost:8000/callback'); // Update with your callback URL
+      const redirectUri = encodeURIComponent('https://crystalfied.github.io'); // Update with your callback URL
       const authUrl = `${OAUTH_URL}?client_id=${CLIENT_ID}&response_type=code&state=123&redirect_uri=${redirectUri}`;
       window.location.href = authUrl;
     }
@@ -580,7 +580,7 @@ CAN AUTO UPLOAD GOOGLE ACC THAT I LOGIN TO-->
         client_secret: CLIENT_SECRET,
         code: code,
         grant_type: 'authorization_code',
-        redirect_uri: 'http://localhost:8000/callback' // Update with your callback URL
+        redirect_uri: 'https://crystalfied.github.io' // Update with your callback URL
       };
 
       fetch(ACCESS_TOKEN_URL, {
