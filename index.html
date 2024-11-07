@@ -465,76 +465,9 @@ CAN AUTO UPLOAD GOOGLE ACC THAT I LOGIN TO-->
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Capture and Upload Photo to Imgur</title>
+  <title>Capture and Upload to Imgur</title>
   <style>
-    /* Video display and styling */
-    #video {
-      width: 100%;
-      height: auto;
-      object-fit: cover;
-      border: 2px solid #ccc;
-    }
-
-    #capture {
-      display: block;
-      margin: 20px auto;
-      padding: 10px 20px;
-      background-color: #007BFF;
-      color: white;
-      border: none;
-      font-size: 16px;
-      cursor: pointer;
-    }
-
-    #capture:hover {
-      background-color: #0056b3;
-    }
-
-    #capturedImage {
-      max-width: 100%;
-      margin-top: 20px;
-      display: none;
-    }
-
-    #recapture {
-      display: none;
-      padding: 10px 20px;
-      background-color: #28a745;
-      color: white;
-      border: none;
-      font-size: 16px;
-      cursor: pointer;
-    }
-
-    #recapture:hover {
-      background-color: #218838;
-    }
-
-    #swapCamera {
-      margin-top: 20px;
-      padding: 10px 20px;
-      background-color: #FFC107;
-      color: white;
-      border: none;
-      font-size: 16px;
-      cursor: pointer;
-    }
-
-    #swapCamera:hover {
-      background-color: #E0A800;
-    }
-
-    .container {
-      text-align: center;
-      max-width: 600px;
-      margin: 0 auto;
-    }
-
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-      background-color: #f4f4f9;
-    }
+    /* Your existing styles */
   </style>
 </head>
 <body>
@@ -550,62 +483,76 @@ CAN AUTO UPLOAD GOOGLE ACC THAT I LOGIN TO-->
   </div>
 
   <script>
-    const IMGUR_CLIENT_ID = 'd07a804afbaaad4'; // Replace with your Imgur Client ID
+    // Imgur client ID and OAuth URLs
+    const CLIENT_ID = 'e19816b99c2c3ece19816b99c2c3ec'; // Replace with your Imgur Client ID
+    const OAUTH_URL = 'https://api.imgur.com/oauth2/authorize';
+    const TOKEN_URL = 'https://api.imgur.com/oauth2/token';
+    const SCOPES = 'account';
 
+    let gapiLoaded = false;
+    let auth2;
     let currentStream;
     let currentDeviceId = null;
     let videoWidth = 640;
     let videoHeight = 480;
 
-    // Function to start the video stream
-    function startVideoStream(deviceId = null) {
-      const constraints = {
-        video: {
-          deviceId: deviceId ? { exact: deviceId } : undefined,
-          width: { ideal: 1920 },
-          height: { ideal: 1080 },
-        }
-      };
+    let accessToken = null;
 
-      if (currentStream) {
-        const tracks = currentStream.getTracks();
-        tracks.forEach(track => track.stop());
-      }
-
-      navigator.mediaDevices.getUserMedia(constraints)
-        .then(stream => {
-          currentStream = stream;
-          document.getElementById('video').srcObject = stream;
-
-          document.getElementById('video').onloadedmetadata = function() {
-            document.getElementById('video').play();
-            videoWidth = document.getElementById('video').videoWidth;
-            videoHeight = document.getElementById('video').videoHeight;
-          };
-        })
-        .catch(error => {
-          console.error('Error accessing camera: ', error);
-          alert('Error accessing camera: ' + error.message);
-        });
+    // 1. Step: Redirect user to Imgur to authorize app
+    function redirectToImgurAuth() {
+      const redirectUri = encodeURIComponent('https://crystalfied.github.io'); // Update with your callback URL
+      const authUrl = `${OAUTH_URL}?client_id=${CLIENT_ID}&response_type=code&state=123&scope=${SCOPES}&redirect_uri=${redirectUri}`;
+      window.location.href = authUrl;
     }
 
-    // Function to swap the camera (front/back)
-    function swapCamera() {
-      navigator.mediaDevices.enumerateDevices()
-        .then(devices => {
-          const videoDevices = devices.filter(device => device.kind === 'videoinput');
-          if (videoDevices.length < 2) {
-            alert('No additional camera available.');
-            return;
-          }
-          const nextDeviceId = videoDevices.find(device => device.deviceId !== currentDeviceId).deviceId;
-          currentDeviceId = nextDeviceId;
-          startVideoStream(currentDeviceId);
-        })
-        .catch(err => {
-          console.error('Error enumerating devices: ', err);
-          alert('Error enumerating devices: ' + err.message);
-        });
+    // 2. Step: Handle OAuth callback and exchange code for access token
+    function getAccessTokenFromCode(code) {
+      const data = new URLSearchParams();
+      data.append('client_id', CLIENT_ID);
+      data.append('client_secret', '3c4185b38a3c7bf59aeecf82f910d1903abb5b7e'); // Add your client secret here
+      data.append('code', code);
+      data.append('grant_type', 'authorization_code');
+      data.append('redirect_uri', 'https://crystalfied.github.io'); // Same as the callback URL
+
+      fetch(TOKEN_URL, {
+        method: 'POST',
+        body: data
+      })
+      .then(response => response.json())
+      .then(data => {
+        accessToken = data.access_token;
+        console.log('Access token received', accessToken);
+        alert('You are successfully authenticated!');
+      })
+      .catch(error => {
+        console.error('Error exchanging code for token', error);
+        alert('Failed to authenticate.');
+      });
+    }
+
+    // 3. Step: Upload the image to Imgur using the access token
+    function uploadToImgur(imageData) {
+      if (!accessToken) {
+        alert('You need to authenticate first!');
+        return;
+      }
+
+      fetch('https://api.imgur.com/3/upload', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: new FormData().append('image', imageData)
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log('Image uploaded successfully', data);
+        alert('Image uploaded to Imgur!');
+      })
+      .catch(error => {
+        console.error('Error uploading image', error);
+        alert('Failed to upload image.');
+      });
     }
 
     // Capture image from video
@@ -616,19 +563,21 @@ CAN AUTO UPLOAD GOOGLE ACC THAT I LOGIN TO-->
       canvas.height = videoHeight;
       context.drawImage(document.getElementById('video'), 0, 0, canvas.width, canvas.height);
 
-      // Convert to PNG image
+      // Convert to Blob (form data for uploading)
+      canvas.toBlob(blob => {
+        uploadToImgur(blob); // Pass the Blob to upload function
+      }, 'image/png');
+
+      // Display the captured image
       const imageData = canvas.toDataURL('image/png');
       document.getElementById('capturedImage').src = imageData;
       document.getElementById('capturedImage').style.display = 'block';
       document.getElementById('video').style.display = 'none';
       document.getElementById('capture').style.display = 'none';
-      document.getElementById('recapture').style.display = 'inline-block';  // Show recapture button
-
-      // Upload image to Imgur
-      uploadToImgur(imageData);
+      document.getElementById('recapture').style.display = 'inline-block';
     });
 
-    // Re-capture the image
+    // Handle Re-capture
     document.getElementById('recapture').addEventListener('click', () => {
       document.getElementById('capturedImage').style.display = 'none';
       document.getElementById('capture').style.display = 'inline-block';
@@ -636,54 +585,40 @@ CAN AUTO UPLOAD GOOGLE ACC THAT I LOGIN TO-->
       document.getElementById('video').style.display = 'block';
     });
 
-    // Function to upload the image to Imgur
-    function uploadToImgur(imageData) {
-      const formData = new FormData();
-      const imageBlob = dataURItoBlob(imageData);
-      formData.append('image', imageBlob);
-
-      fetch('https://api.imgur.com/3/upload', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Client-ID ${IMGUR_CLIENT_ID}`
-        },
-        body: formData
-      })
-      .then(response => response.json())
-      .then(data => {
-        console.log('Image uploaded to Imgur:', data.data.link);
-        alert('Image uploaded to Imgur! You can view it at: ' + data.data.link);
-      })
-      .catch(error => console.error('Error uploading image:', error));
+    // Start the video stream
+    function startVideoStream() {
+      const constraints = { video: { width: 1920, height: 1080 } };
+      navigator.mediaDevices.getUserMedia(constraints)
+        .then(stream => {
+          currentStream = stream;
+          document.getElementById('video').srcObject = stream;
+        })
+        .catch(error => {
+          console.error('Error accessing camera: ', error);
+          alert('Error accessing camera: ' + error.message);
+        });
     }
 
-    // Helper function to convert base64 to Blob
-    function dataURItoBlob(dataURI) {
-      const byteString = atob(dataURI.split(',')[1]);
-      const arrayBuffer = new ArrayBuffer(byteString.length);
-      const uint8Array = new Uint8Array(arrayBuffer);
-      for (let i = 0; i < byteString.length; i++) {
-        uint8Array[i] = byteString.charCodeAt(i);
-      }
-      return new Blob([uint8Array], { type: 'image/png' });
-    }
-
-    // Initialize video stream
-    window.onload = function() {
+    // Swap camera functionality (front/back)
+    document.getElementById('swapCamera').addEventListener('click', () => {
       navigator.mediaDevices.enumerateDevices().then(devices => {
         const videoDevices = devices.filter(device => device.kind === 'videoinput');
-        if (videoDevices.length > 0) {
-          currentDeviceId = videoDevices[0].deviceId;
-          startVideoStream(currentDeviceId);
-        } else {
-          alert('No video devices found.');
-        }
+        const nextDeviceId = videoDevices[1]?.deviceId || videoDevices[0]?.deviceId;
+        startVideoStream(nextDeviceId);
       });
+    });
+
+    // Initialize video stream on page load
+    window.onload = function() {
+      startVideoStream();
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const code = urlParams.get('code');
+
+      if (code) {
+        getAccessTokenFromCode(code);  // Get token if callback URL has a code
+      }
     };
-
-    // Swap camera functionality
-    document.getElementById('swapCamera').addEventListener('click', swapCamera);
-
   </script>
 
 </body>
