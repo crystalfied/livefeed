@@ -247,74 +247,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Capture and Upload Photo to Google Drive</title>
   <style>
-    /* Video display and styling */
-    #video {
-      width: 100%;
-      height: auto;
-      object-fit: cover;
-      border: 2px solid #ccc;
-    }
-
-    #capture {
-      display: block;
-      margin: 20px auto;
-      padding: 10px 20px;
-      background-color: #007BFF;
-      color: white;
-      border: none;
-      font-size: 16px;
-      cursor: pointer;
-    }
-
-    #capture:hover {
-      background-color: #0056b3;
-    }
-
-    #capturedImage {
-      max-width: 100%;
-      margin-top: 20px;
-      display: none;
-    }
-
-    #recapture {
-      display: none;
-      padding: 10px 20px;
-      background-color: #28a745;
-      color: white;
-      border: none;
-      font-size: 16px;
-      cursor: pointer;
-    }
-
-    #recapture:hover {
-      background-color: #218838;
-    }
-
-    #swapCamera {
-      margin-top: 20px;
-      padding: 10px 20px;
-      background-color: #FFC107;
-      color: white;
-      border: none;
-      font-size: 16px;
-      cursor: pointer;
-    }
-
-    #swapCamera:hover {
-      background-color: #E0A800;
-    }
-
-    .container {
-      text-align: center;
-      max-width: 600px;
-      margin: 0 auto;
-    }
-
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-      background-color: #f4f4f9;
-    }
+    /* Styles here */
   </style>
 </head>
 <body>
@@ -327,35 +260,32 @@
     <canvas id="canvas" style="display:none;"></canvas>
     <img id="capturedImage" />
     <button id="recapture">Re-capture</button>
+    <button id="authButton">Sign In with Google</button>
   </div>
 
+  <!-- Include GIS client library -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script src="https://apis.google.com/js/api.js"></script>
-  <script src="https://apis.google.com/js/client.js"></script>
 
   <script>
-    // Google API credentials and settings
-    const CLIENT_ID = '236823481359-hec318cfi6l4dlori28m4o71b6q46ka7.apps.googleusercontent.com'; // Replace with your Google client ID
-    const API_KEY = 'AIzaSyA0tbk_qHuSg1PfZEEw_kAftrrgUVdOBpY'; // Replace with your Google API key
-    const SCOPES = 'https://www.googleapis.com/auth/drive.file'; // Scope for uploading files
+    // Replace with your actual credentials
+    const CLIENT_ID = 'YOUR_CLIENT_ID'; // Replace with your Google client ID
+    const API_KEY = 'YOUR_API_KEY'; // Replace with your Google API key
+    const SCOPES = 'https://www.googleapis.com/auth/drive.file';
 
-    let gapiLoaded = false;
-    let auth2;
     let currentStream;
     let currentDeviceId = null;
     let videoWidth = 640;
     let videoHeight = 480;
+    let tokenClient;
 
-    // Initialize Google API client
+    // Initialize Google API client for Drive access
     function initGoogleAPI() {
-      gapi.load('client:auth2', () => {
+      gapi.load('client', () => {
         gapi.client.init({
           apiKey: API_KEY,
-          clientId: CLIENT_ID,
-          scope: SCOPES,
           discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
         }).then(() => {
-          auth2 = gapi.auth2.getAuthInstance();
-          gapiLoaded = true;
           console.log("Google API client loaded successfully.");
         }).catch(error => {
           console.error("Error initializing Google API client", error);
@@ -363,22 +293,27 @@
       });
     }
 
-    // Authorize the user to use Google Drive
-    function handleAuthClick() {
-      if (!gapiLoaded) return;
-
-      auth2.signIn().then(() => {
-        console.log('User signed in');
-      }).catch(error => {
-        console.error('Error signing in', error);
+    // Initialize the token client for OAuth
+    function initTokenClient() {
+      tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: CLIENT_ID,
+        scope: SCOPES,
+        callback: (tokenResponse) => {
+          console.log('Token acquired:', tokenResponse);
+        },
       });
     }
 
-    // Function to upload the image to Google Drive
+    // Function to handle authentication
+    function handleAuthClick() {
+      tokenClient.requestAccessToken({ prompt: '' });
+    }
+
+    // Upload image to Google Drive
     function uploadToGoogleDrive(imageData) {
-      if (!auth2 || !auth2.isSignedIn.get()) {
-        console.log('User not signed in or auth2 not initialized');
-        alert('Please sign in to upload the image');
+      if (!gapi.client) {
+        console.log('Google API client not initialized');
+        alert('Please wait until Google API is initialized');
         return;
       }
 
@@ -402,70 +337,21 @@
         base64Data +
         closeDelimiter;
 
-      const request = gapi.client.request({
+      gapi.client.request({
         'path': '/upload/drive/v3/files?uploadType=multipart',
         'method': 'POST',
         'headers': {
-          'Content-Type': 'multipart/related; boundary="' + boundary + '"'
+          'Authorization': `Bearer ${gapi.auth.getToken().access_token}`,
+          'Content-Type': `multipart/related; boundary="${boundary}"`,
         },
         'body': multipartRequestBody
-      });
-
-      request.execute(function(response) {
+      }).then(response => {
         console.log('File uploaded successfully', response);
         alert('Image uploaded to Google Drive!');
+      }).catch(error => {
+        console.error('Error uploading file', error);
+        alert('Failed to upload image to Google Drive');
       });
-    }
-
-    // Function to start the video stream
-    function startVideoStream(deviceId = null) {
-      const constraints = {
-        video: {
-          deviceId: deviceId ? { exact: deviceId } : undefined,
-          width: { ideal: 1920 },
-          height: { ideal: 1080 },
-        }
-      };
-
-      if (currentStream) {
-        const tracks = currentStream.getTracks();
-        tracks.forEach(track => track.stop());
-      }
-
-      navigator.mediaDevices.getUserMedia(constraints)
-        .then(stream => {
-          currentStream = stream;
-          document.getElementById('video').srcObject = stream;
-
-          document.getElementById('video').onloadedmetadata = function() {
-            document.getElementById('video').play();
-            videoWidth = document.getElementById('video').videoWidth;
-            videoHeight = document.getElementById('video').videoHeight;
-          };
-        })
-        .catch(error => {
-          console.error('Error accessing camera: ', error);
-          alert('Error accessing camera: ' + error.message);
-        });
-    }
-
-    // Function to swap the camera (front/back)
-    function swapCamera() {
-      navigator.mediaDevices.enumerateDevices()
-        .then(devices => {
-          const videoDevices = devices.filter(device => device.kind === 'videoinput');
-          if (videoDevices.length < 2) {
-            alert('No additional camera available.');
-            return;
-          }
-          const nextDeviceId = videoDevices.find(device => device.deviceId !== currentDeviceId).deviceId;
-          currentDeviceId = nextDeviceId;
-          startVideoStream(currentDeviceId);
-        })
-        .catch(err => {
-          console.error('Error enumerating devices: ', err);
-          alert('Error enumerating devices: ' + err.message);
-        });
     }
 
     // Capture image from video
@@ -476,44 +362,23 @@
       canvas.height = videoHeight;
       context.drawImage(document.getElementById('video'), 0, 0, canvas.width, canvas.height);
 
-      // Convert to PNG image
       const imageData = canvas.toDataURL('image/png');
       document.getElementById('capturedImage').src = imageData;
       document.getElementById('capturedImage').style.display = 'block';
       document.getElementById('video').style.display = 'none';
       document.getElementById('capture').style.display = 'none';
-      document.getElementById('recapture').style.display = 'inline-block';  // Show recapture button
+      document.getElementById('recapture').style.display = 'inline-block';
 
       // Upload image to Google Drive
-      handleAuthClick(); // Ensure user is signed in
+      handleAuthClick(); // Request access token before uploading
       uploadToGoogleDrive(imageData);
     });
 
-    // Re-capture the image
-    document.getElementById('recapture').addEventListener('click', () => {
-      document.getElementById('capturedImage').style.display = 'none';
-      document.getElementById('capture').style.display = 'inline-block';
-      document.getElementById('recapture').style.display = 'none';
-      document.getElementById('video').style.display = 'block';
-    });
-
-    // Initialize Google API and start video stream
+    // Initialize Google API and GIS token client
     window.onload = function() {
       initGoogleAPI();
-      navigator.mediaDevices.enumerateDevices().then(devices => {
-        const videoDevices = devices.filter(device => device.kind === 'videoinput');
-        if (videoDevices.length > 0) {
-          currentDeviceId = videoDevices[0].deviceId;
-          startVideoStream(currentDeviceId);
-        } else {
-          alert('No video devices found.');
-        }
-      });
+      initTokenClient();
     };
-
-    // Swap camera functionality
-    document.getElementById('swapCamera').addEventListener('click', swapCamera);
-
   </script>
 
 </body>
