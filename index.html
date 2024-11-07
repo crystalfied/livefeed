@@ -465,14 +465,14 @@ CAN AUTO UPLOAD GOOGLE ACC THAT I LOGIN TO-->
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Capture and Upload to Imgur</title>
+  <title>Capture and Upload Photo to Centralized Imgur Account</title>
   <style>
     /* Your existing styles */
   </style>
 </head>
 <body>
 
-  <h1>Capture and Upload Photo to Imgur</h1>
+  <h1>Capture and Upload Photo to Centralized Imgur Account</h1>
   <div class="container">
     <video id="video" autoplay muted playsinline></video>
     <button id="capture">Capture</button>
@@ -484,32 +484,29 @@ CAN AUTO UPLOAD GOOGLE ACC THAT I LOGIN TO-->
 
   <script>
     // Imgur client ID and OAuth URLs
-    const CLIENT_ID = 'e19816b99c2c3ece19816b99c2c3ec'; // Replace with your Imgur Client ID
+    const CLIENT_ID = 'e19816b99c2c3ec'; // Replace with your Imgur Client ID
+    const CLIENT_SECRET = '3c4185b38a3c7bf59aeecf82f910d1903abb5b7e'; // Replace with your Imgur Client Secret
     const OAUTH_URL = 'https://api.imgur.com/oauth2/authorize';
     const TOKEN_URL = 'https://api.imgur.com/oauth2/token';
-    const SCOPES = 'account';
+    const SCOPES = 'account'; // Required scope to upload images to the account
 
-    let gapiLoaded = false;
-    let auth2;
+    let accessToken = null;
     let currentStream;
-    let currentDeviceId = null;
     let videoWidth = 640;
     let videoHeight = 480;
 
-    let accessToken = null;
-
-    // 1. Step: Redirect user to Imgur to authorize app
+    // Step 1: Redirect user to Imgur to authenticate and authorize the app
     function redirectToImgurAuth() {
       const redirectUri = encodeURIComponent('https://crystalfied.github.io'); // Update with your callback URL
       const authUrl = `${OAUTH_URL}?client_id=${CLIENT_ID}&response_type=code&state=123&scope=${SCOPES}&redirect_uri=${redirectUri}`;
       window.location.href = authUrl;
     }
 
-    // 2. Step: Handle OAuth callback and exchange code for access token
+    // Step 2: Handle the OAuth callback and exchange code for access token
     function getAccessTokenFromCode(code) {
       const data = new URLSearchParams();
       data.append('client_id', CLIENT_ID);
-      data.append('client_secret', '3c4185b38a3c7bf59aeecf82f910d1903abb5b7e'); // Add your client secret here
+      data.append('client_secret', CLIENT_SECRET);
       data.append('code', code);
       data.append('grant_type', 'authorization_code');
       data.append('redirect_uri', 'https://crystalfied.github.io'); // Same as the callback URL
@@ -521,16 +518,16 @@ CAN AUTO UPLOAD GOOGLE ACC THAT I LOGIN TO-->
       .then(response => response.json())
       .then(data => {
         accessToken = data.access_token;
-        console.log('Access token received', accessToken);
-        alert('You are successfully authenticated!');
+        console.log('Access token received:', accessToken);
+        alert('Authentication successful!');
       })
       .catch(error => {
-        console.error('Error exchanging code for token', error);
+        console.error('Error exchanging code for token:', error);
         alert('Failed to authenticate.');
       });
     }
 
-    // 3. Step: Upload the image to Imgur using the access token
+    // Step 3: Upload image to the centralized Imgur account
     function uploadToImgur(imageData) {
       if (!accessToken) {
         alert('You need to authenticate first!');
@@ -546,11 +543,11 @@ CAN AUTO UPLOAD GOOGLE ACC THAT I LOGIN TO-->
       })
       .then(response => response.json())
       .then(data => {
-        console.log('Image uploaded successfully', data);
-        alert('Image uploaded to Imgur!');
+        console.log('Image uploaded successfully:', data);
+        alert('Image uploaded to the centralized Imgur account!');
       })
       .catch(error => {
-        console.error('Error uploading image', error);
+        console.error('Error uploading image:', error);
         alert('Failed to upload image.');
       });
     }
