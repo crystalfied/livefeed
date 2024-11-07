@@ -362,24 +362,29 @@
         });
       });
     }
-
+    
     // Authorize the user to use Google Drive
     function handleAuthClick() {
       if (!gapiLoaded) return;
-
+    
       auth2.signIn().then(() => {
         console.log('User signed in');
       }).catch(error => {
         console.error('Error signing in', error);
       });
     }
-
+    
     // Function to upload the image to Google Drive
     function uploadToGoogleDrive(imageData) {
-      if (!auth2.isSignedIn.get()) {
-        console.log('User not signed in');
+      if (!auth2 || !auth2.isSignedIn.get()) {
+        console.log('User not signed in or auth2 not initialized');
+        alert('Please sign in to upload the image');
         return;
       }
+    
+      // Rest of the upload code
+    }
+    
 
       const boundary = '-------314159265358979323846';
       const delimiter = "\r\n--" + boundary + "\r\n";
