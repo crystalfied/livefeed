@@ -149,6 +149,7 @@
       })
       .then(response => response.json())
       .then(data => {
+        document.getElementById('loadingMessage').style.display = 'none';
         if (data.success) {
           const imgUrl = data.data.link;
           localStorage.setItem('uploadedImageUrl', imgUrl); // Store the URL in localStorage
