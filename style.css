@@ -1,10 +1,9 @@
 /* General body styling */
 body {
   font-family: 'Arial', sans-serif;
-  background: url('https://www.transparenttextures.com/patterns/snow.png') repeat, 
-              url('https://images.unsplash.com/photo-1513110506062-7f7c63cc758f') no-repeat center center fixed; 
+  background: url('https://images.unsplash.com/photo-1513110506062-7f7c63cc758f') no-repeat center center fixed;
   background-size: cover;
-  color: #333;
+  color: #fff;
   margin: 0;
   padding: 0;
   overflow-x: hidden;
@@ -60,7 +59,7 @@ body {
 /* Header styling */
 h1 {
   text-align: center;
-  color: #d32f2f; /* Christmas red */
+  color: #ff0000; /* Christmas red */
   font-size: 3rem;
   text-shadow: 3px 3px 5px rgba(0, 0, 0, 0.3);
   margin-top: 50px;
@@ -72,7 +71,7 @@ h1 {
   max-width: 600px;
   margin: 20px auto;
   display: block;
-  border: 5px solid #d32f2f; /* Red border */
+  border: 5px solid #ff0000; /* Red border */
   border-radius: 15px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   background-color: #f5f5f5; /* Light background for the image */
@@ -104,22 +103,24 @@ h1 {
   background-color: #1b5e20; /* Even darker green on active */
 }
 
+#controls button:disabled {
+  background-color: #888; /* Disable button when inactive */
+}
+
+/* Capture, Swap, and Recapture buttons */
 #capture, #swapCamera, #recapture {
-  background-color: #ff7043; /* Festive orange for capture and recapture */
+  background-color: #ff7043; /* Festive orange */
 }
 
 #capture:hover, #swapCamera:hover, #recapture:hover {
   background-color: #ff5722; /* Darker orange */
 }
 
-/* Additional festive styling for background */
-body {
-  background: url('https://images.unsplash.com/photo-1513110506062-7f7c63cc758f') no-repeat center center fixed, 
-              url('https://www.transparenttextures.com/patterns/snow.png') repeat;
-  background-size: cover, auto;
+#capture:disabled, #swapCamera:disabled, #recapture:disabled {
+  background-color: #888; /* Disabled state */
 }
 
-/* Styling for the video and canvas */
+/* Video and Image Display */
 #video, #capturedImage {
   max-width: 100%;
   border: 2px solid #2e7d32; /* Green border for video/capture image */
