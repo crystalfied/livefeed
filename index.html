@@ -1018,8 +1018,7 @@ working code -->
         .then(devices => {
           // Filter and log video input devices
           availableCameras = devices.filter(device => device.kind === 'videoinput');
-          console.log("Available Cameras:", availableCameras); // Log devices to see all detected cameras
-
+          
           if (availableCameras.length > 0) {
             currentDeviceId = availableCameras[0].deviceId; // Set initial camera
             startVideoStream(currentDeviceId);
@@ -1117,16 +1116,13 @@ working code -->
     // Swap between cameras by changing deviceId
     document.getElementById('swapCamera').addEventListener('click', () => {
       if (availableCameras.length < 2) {
-        console.log("No additional camera available to swap.");
+        alert("No additional camera available to swap.");
         return;
       }
 
       // Get the index of the current camera and find the next camera
       const currentIndex = availableCameras.findIndex(camera => camera.deviceId === currentDeviceId);
       const nextCameraIndex = (currentIndex + 1) % availableCameras.length;
-
-      // Log camera switching
-      console.log("Switching camera from", availableCameras[currentIndex].label, "to", availableCameras[nextCameraIndex].label);
 
       // Update the current device ID and restart the stream with the new camera
       currentDeviceId = availableCameras[nextCameraIndex].deviceId;
