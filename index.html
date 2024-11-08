@@ -152,7 +152,6 @@
         if (data.success) {
           const imgUrl = data.data.link;
           localStorage.setItem('uploadedImageUrl', imgUrl); // Store the URL in localStorage
-          alert('Please wait!');
           alert('Moment shared successfully!');
         } else {
           console.log('Fail to share', data);
