@@ -6,13 +6,15 @@
   <title>Capture the moment and share it with everyone</title>
   <link rel="stylesheet" href="style.css">
   <style>
-    /* #video, #capturedImage {
-      width: 100%;
-      max-width: 600px;
-      margin: 10px auto;
-      display: block;
-      border: 1px solid #ccc;
-    }*/
+    @media (orientation: landscape) {
+      #video, #capturedImage {
+        width: 100%;
+        max-width: 600px;
+        margin: 10px auto;
+        display: block;
+        border: 1px solid #ccc;
+      }
+    }
     #controls {
       text-align: center;
       margin: 20px;
@@ -37,13 +39,7 @@
       line-height: 100vh;
       z-index: 1000;
     }
-    /* For better mobile and landscape compatibility */
-    @media (orientation: landscape) {
-      #video, #capturedImage {
-        max-width: auto;
-        height: auto;
-      }
-    }
+
   </style>
 </head>
 <body>
