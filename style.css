@@ -33,6 +33,7 @@ body {
   z-index: 1000;
 }
 
+/* Snow falling animation */
 @keyframes snow {
   0% {
     transform: translateY(-100px) rotate(0deg);
@@ -42,6 +43,7 @@ body {
   }
 }
 
+/* Snowflakes rotating animation */
 @keyframes rotate {
   0% {
     transform: rotate(0deg);
@@ -52,45 +54,17 @@ body {
 }
 
 /* Randomize snowflake size, speed, and positions */
-.snowflakes span:nth-child(odd) {
-  font-size: 18px;
-  animation-duration: 15s;
-  animation-delay: -5s;
+.snowflakes span {
   left: calc(100% * (random() / 100)); /* Random horizontal positioning */
+  animation-duration: calc(10s + random() * 20s); /* Random fall duration */
+  animation-delay: calc(-10s + random() * 5s); /* Random delay */
+  font-size: calc(15px + random() * 20px); /* Random size */
 }
 
-.snowflakes span:nth-child(even) {
-  font-size: 22px;
-  animation-duration: 20s;
-  animation-delay: -3s;
-  left: calc(100% * (random() / 100)); /* Random horizontal positioning */
-}
-
-.snowflakes span:nth-child(3n) {
-  font-size: 28px;
-  animation-duration: 18s;
-  animation-delay: -7s;
-  left: calc(100% * (random() / 100)); /* Random horizontal positioning */
-}
-
-.snowflakes span:nth-child(4n) {
-  font-size: 24px;
-  animation-duration: 12s;
-  animation-delay: -2s;
-  left: calc(100% * (random() / 100)); /* Random horizontal positioning */
-}
-
-.snowflakes span:nth-child(5n) {
-  font-size: 30px;
-  animation-duration: 25s;
-  animation-delay: -10s;
-  left: calc(100% * (random() / 100)); /* Random horizontal positioning */
-}
-
-/* Ensure snowflakes appear randomly on smaller screens as well */
+/* Mobile Responsiveness */
 @media screen and (max-width: 600px) {
   .snowflakes span {
     font-size: 12px;
-    animation-duration: 15s;
+    animation-duration: calc(15s + random() * 10s);
   }
 }
