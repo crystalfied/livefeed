@@ -210,12 +210,12 @@
     window.addEventListener('resize', function() {
       if (window.innerHeight > window.innerWidth) {
         // Portrait mode
-        videoWidth = 1080;
-        videoHeight = 1920;
+        videoWidth = 640;
+        videoHeight = 480;
       } else {
         // Landscape mode
-        videoWidth = 1920;
-        videoHeight = 1080;
+        videoWidth = 1280;
+        videoHeight = 720;
       }
       document.getElementById('video').style.width = videoWidth + 'px';
       document.getElementById('video').style.height = videoHeight + 'px';
