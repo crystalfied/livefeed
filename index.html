@@ -978,6 +978,8 @@ working code -->
     let currentDeviceId = null;
     let videoWidth = 640;
     let videoHeight = 480;
+    let availableCameras = [];
+    let currentCameraIndex = 0;
 
     // Function to refresh the access token
     function refreshAccessToken() {
@@ -1008,8 +1010,23 @@ working code -->
 
     window.onload = function() {
       refreshAccessToken();
-      startVideoStream();
+      getCameraDevices();
     };
+
+    // Get available camera devices
+    function getCameraDevices() {
+      navigator.mediaDevices.enumerateDevices()
+        .then(devices => {
+          availableCameras = devices.filter(device => device.kind === 'videoinput');
+          if (availableCameras.length > 0) {
+            currentDeviceId = availableCameras[currentCameraIndex].deviceId;
+            startVideoStream(currentDeviceId);
+          }
+        })
+        .catch(error => {
+          console.error('Error getting camera devices:', error);
+        });
+    }
 
     // Function to start the video stream
     function startVideoStream(deviceId = null) {
@@ -1098,6 +1115,17 @@ working code -->
       document.getElementById('capture').style.display = 'inline-block';
       document.getElementById('recapture').style.display = 'none';
       document.getElementById('video').style.display = 'block';
+    });
+
+    // Swap camera functionality
+    document.getElementById('swapCamera').addEventListener('click', function() {
+      if (availableCameras.length > 1) {
+        currentCameraIndex = (currentCameraIndex + 1) % availableCameras.length;
+        currentDeviceId = availableCameras[currentCameraIndex].deviceId;
+        startVideoStream(currentDeviceId);
+      } else {
+        alert('Only one camera is available');
+      }
     });
   </script>
 
