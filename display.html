@@ -25,6 +25,11 @@
   <img id="uploadedImage" alt="Latest image uploaded to Imgur" />
   
   <script>
+    // Function to generate a random number between two values (inclusive)
+    function getRandomInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+    
     // Function to create and animate snowflakes
     function createSnowflakes() {
       for (let i = 0; i < numberOfSnowflakes; i++) {
@@ -41,13 +46,16 @@
         // Randomize horizontal position (from 0% to 100%)
         snowflake.style.left = `${getRandomInt(0, 100)}%`;
         
-        // Randomize horizontal drift speed (move slightly left or right during fall)
-        snowflake.style.animationTimingFunction = 'linear';
+        // Apply rotation animation
+        snowflake.style.animationName = 'snow, rotate';
         
         // Append snowflake to container
         snowflakesContainer.appendChild(snowflake);
       }
     }
+    
+    // Call the function to create snowflakes
+    createSnowflakes();
     
     const CLIENT_ID = '9568a085be0e796'; // Your Imgur Client ID
     const CLIENT_SECRET = '2097a7d83130f607245fe51c00a2fc860e69be6c'; // Your Imgur Client Secret
