@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Uploaded Image</title>
+  <title>Display Latest Image from Imgur</title>
   <style>
+    /* Styling for the image display */
     #uploadedImage {
       width: 100%;
       max-width: 600px;
@@ -12,35 +13,83 @@
       display: block;
       border: 1px solid #ccc;
     }
-    body {
-      text-align: center;
-      font-family: Arial, sans-serif;
-    }
   </style>
 </head>
 <body>
   <h1>Latest Uploaded Image</h1>
-  <img id="uploadedImage" alt="Uploaded to Imgur" />
-
+  <img id="uploadedImage" alt="Latest image uploaded to Imgur" />
+  
   <script>
-    const uploadedImage = document.getElementById('uploadedImage');
-    let currentImageUrl = localStorage.getItem('uploadedImageUrl'); // Get initial image URL
+    const CLIENT_ID = '9568a085be0e796'; // Your Imgur Client ID
+    const CLIENT_SECRET = '2097a7d83130f607245fe51c00a2fc860e69be6c'; // Your Imgur Client Secret
+    let accessToken = 'b5376875134b4a11a02ec10ff8f3f9f3df33d7db'; // Your initial access token
+    const ACCESS_TOKEN_URL = 'https://api.imgur.com/oauth2/token';
+    const IMAGE_API_URL = 'https://api.imgur.com/3/account/me/images';
 
-    // Set the image if URL is available in localStorage
-    if (currentImageUrl) {
-      uploadedImage.src = currentImageUrl;
+    // Function to refresh the access token
+    function refreshAccessToken() {
+      const data = {
+        client_id: CLIENT_ID,
+        client_secret: CLIENT_SECRET,
+        grant_type: 'refresh_token',
+        refresh_token: localStorage.getItem('refreshToken')  // Store refresh token securely
+      };
+
+      fetch(ACCESS_TOKEN_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams(data)
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.access_token) {
+          accessToken = data.access_token;
+          localStorage.setItem('accessToken', accessToken);
+          const expiresIn = data.expires_in || 3600;
+          setTimeout(refreshAccessToken, (expiresIn - 60) * 1000);  // Refresh before expiration
+        }
+      })
+      .catch(error => {
+        console.error('Error refreshing access token:', error);
+      });
     }
 
-    // Function to check for the updated image URL
-    function checkForNewImage() {
-      const newImageUrl = localStorage.getItem('uploadedImageUrl');
-      if (newImageUrl && newImageUrl !== currentImageUrl) {
-        currentImageUrl = newImageUrl;
-        uploadedImage.src = currentImageUrl; // Update the image on the page
+    // Function to fetch the latest uploaded image from Imgur
+    function fetchLatestImage() {
+      fetch(IMAGE_API_URL, {
+        method: 'GET',
+        headers: {
+          'Authorization': 'Bearer ' + accessToken,
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success && data.data.length > 0) {
+          const latestImageUrl = data.data[0].link;
+          document.getElementById('uploadedImage').src = latestImageUrl;
+        } else {
+          console.error('No images found or failed to fetch images');
+        }
+      })
+      .catch(error => {
+        console.error('Error fetching latest image:', error);
+      });
+    }
+
+    // Start by refreshing the access token
+    window.onload = function() {
+      // Retrieve access token from localStorage if available
+      const storedAccessToken = localStorage.getItem('accessToken');
+      if (storedAccessToken) {
+        accessToken = storedAccessToken;
+        fetchLatestImage();
+      } else {
+        refreshAccessToken();  // If no token found, refresh the token
       }
-    }
 
-    setInterval(checkForNewImage, 5000); // Check every 5 seconds
+      // Poll for the latest image every 5 seconds
+      setInterval(fetchLatestImage, 5000);  // Auto-refresh the image every 5 seconds
+    };
   </script>
 </body>
 </html>
