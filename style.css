@@ -36,10 +36,10 @@ body {
 /* Snow falling animation */
 @keyframes snow {
   0% {
-    transform: translateY(-100px) rotate(0deg);
+    transform: translateY(-100px); /* Start above the viewport */
   }
   100% {
-    transform: translateY(100vh) rotate(360deg);
+    transform: translateY(100vh); /* End at the bottom of the viewport */
   }
 }
 
@@ -59,6 +59,7 @@ body {
   animation-duration: calc(10s + random() * 20s); /* Random fall duration */
   animation-delay: calc(-10s + random() * 5s); /* Random delay */
   font-size: calc(15px + random() * 20px); /* Random size */
+  animation-timing-function: linear;
 }
 
 /* Mobile Responsiveness */
@@ -67,4 +68,40 @@ body {
     font-size: 12px;
     animation-duration: calc(15s + random() * 10s);
   }
+}
+
+/* Styling for header and buttons */
+h1 {
+  text-align: center;
+  margin-top: 50px;
+  font-size: 36px;
+  color: #fffae5;
+}
+
+#controls {
+  text-align: center;
+  margin-top: 30px;
+}
+
+button {
+  padding: 10px 20px;
+  font-size: 18px;
+  margin: 10px;
+  background-color: #f44d6d;
+  border: none;
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #e43b5c;
+}
+
+#capturedImage {
+  width: 100%;
+  max-width: 600px;
+  margin: 20px auto;
+  display: block;
+  border: 1px solid #ccc;
 }
