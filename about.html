@@ -1,42 +1,538 @@
+<!-- CAN AUTO UPLOAD imgur ACC THAT I LOGIN TO
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Display Uploaded Image</title>
+  <title>Capture and Upload Photo to Imgur</title>
   <style>
-    body {
+    /* Video display and styling */
+    #video {
+      width: 100%;
+      height: auto;
+      object-fit: cover;
+      border: 2px solid #ccc;
+    }
+
+    #capture {
+      display: block;
+      margin: 20px auto;
+      padding: 10px 20px;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    #capture:hover {
+      background-color: #0056b3;
+    }
+
+    #capturedImage {
+      max-width: 100%;
+      margin-top: 20px;
+      display: none;
+    }
+
+    #recapture {
+      display: none;
+      padding: 10px 20px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    #recapture:hover {
+      background-color: #218838;
+    }
+
+    #swapCamera {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background-color: #FFC107;
+      color: white;
+      border: none;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    #swapCamera:hover {
+      background-color: #E0A800;
+    }
+
+    .container {
       text-align: center;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    body {
       font-family: Arial, sans-serif;
       padding: 20px;
-    }
-    img {
-      max-width: 100%;
-      height: auto;
+      background-color: #f4f4f9;
     }
   </style>
 </head>
 <body>
 
-  <h1>Uploaded Image</h1>
-  <img id="uploadedImage" src="" alt="Uploaded Image" />
+  <h1>Capture and Upload Photo to Imgur</h1>
+  <div class="container">
+    <video id="video" autoplay muted playsinline></video>
+    <button id="capture">Capture</button>
+    <button id="swapCamera">Swap Camera</button>
+    <canvas id="canvas" style="display:none;"></canvas>
+    <img id="capturedImage" />
+    <button id="recapture">Re-capture</button>
+  </div>
 
   <script>
-    // Wait for image to be available in localStorage
-    window.onload = function () {
-      const imageURL = localStorage.getItem('capturedImageURL');
-      const fileID = localStorage.getItem('uploadedFileID');
+    // Imgur OAuth and API credentials
+    const CLIENT_ID = '9568a085be0e796'; // Replace with your Imgur Client ID
+    const CLIENT_SECRET = '27db22ce001cee2e068142b07a11e2e57dcf1632'; // Replace with your Imgur Client Secret
+    const OAUTH_URL = 'https://api.imgur.com/oauth2/authorize'; 
+    const ACCESS_TOKEN_URL = 'https://api.imgur.com/oauth2/token';
+    const API_URL = 'https://api.imgur.com/3/image'; 
 
-      if (imageURL) {
-        document.getElementById('uploadedImage').src = imageURL;
-      } else if (fileID) {
-        const fileURL = `https://drive.google.com/uc?id=${fileID}`;
-        document.getElementById('uploadedImage').src = fileURL;
-      } else {
-        alert('No image available to display.');
+    let gapiLoaded = false;
+    let auth2;
+    let currentStream;
+    let currentDeviceId = null;
+    let videoWidth = 640;
+    let videoHeight = 480;
+    let accessToken = ''; // Will hold the access token after OAuth
+
+    // Redirect user to Imgur to authenticate and authorize the app
+    function redirectToImgurAuth() {
+      const redirectUri = encodeURIComponent('https://crystalfied.github.io/livefeed80/'); // Update with your callback URL
+      const authUrl = `${OAUTH_URL}?client_id=${CLIENT_ID}&response_type=code&state=123&redirect_uri=${redirectUri}`;
+      window.location.href = authUrl;
+    }
+
+    // Exchange authorization code for access token
+    function getAccessTokenFromCode(code) {
+      const data = {
+        client_id: CLIENT_ID,
+        client_secret: CLIENT_SECRET,
+        code: code,
+        grant_type: 'authorization_code',
+        redirect_uri: 'https://crystalfied.github.io/livefeed80/' // Update with your callback URL
+      };
+
+      fetch(ACCESS_TOKEN_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams(data)
+      })
+      .then(response => response.json())
+      .then(data => {
+        accessToken = data.access_token;
+        console.log('Access Token:', accessToken);
+      })
+      .catch(err => console.error('Error fetching access token:', err));
+    }
+
+    // Upload image to Imgur
+    function uploadToImgur(imageData) {
+      if (!accessToken) {
+        console.log('User not authenticated');
+        return;
       }
+
+      const formData = new FormData();
+      formData.append('image', imageData);
+
+      fetch(API_URL, {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer ' + accessToken,
+        },
+        body: formData,
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          console.log('Image uploaded successfully:', data);
+          alert('Image uploaded to Imgur!');
+        } else {
+          console.log('Upload failed:', data);
+        }
+      })
+      .catch(error => {
+        console.error('Error uploading image:', error);
+      });
+    }
+
+    // Start the video stream
+    function startVideoStream(deviceId = null) {
+      const constraints = {
+        video: {
+          deviceId: deviceId ? { exact: deviceId } : undefined,
+          width: { ideal: 1920 },
+          height: { ideal: 1080 },
+        }
+      };
+
+      if (currentStream) {
+        const tracks = currentStream.getTracks();
+        tracks.forEach(track => track.stop());
+      }
+
+      navigator.mediaDevices.getUserMedia(constraints)
+        .then(stream => {
+          currentStream = stream;
+          document.getElementById('video').srcObject = stream;
+
+          document.getElementById('video').onloadedmetadata = function() {
+            document.getElementById('video').play();
+            videoWidth = document.getElementById('video').videoWidth;
+            videoHeight = document.getElementById('video').videoHeight;
+          };
+        })
+        .catch(error => {
+          console.error('Error accessing camera: ', error);
+          alert('Error accessing camera: ' + error.message);
+        });
+    }
+
+    // Function to swap the camera (front/back)
+    function swapCamera() {
+      navigator.mediaDevices.enumerateDevices()
+        .then(devices => {
+          const videoDevices = devices.filter(device => device.kind === 'videoinput');
+          if (videoDevices.length < 2) {
+            alert('No additional camera available.');
+            return;
+          }
+          const nextDeviceId = videoDevices.find(device => device.deviceId !== currentDeviceId).deviceId;
+          currentDeviceId = nextDeviceId;
+          startVideoStream(currentDeviceId);
+        })
+        .catch(err => {
+          console.error('Error enumerating devices: ', err);
+          alert('Error enumerating devices: ' + err.message);
+        });
+    }
+
+    // Capture image from video
+    document.getElementById('capture').addEventListener('click', () => {
+      const canvas = document.getElementById('canvas');
+      const context = canvas.getContext('2d');
+      canvas.width = videoWidth;
+      canvas.height = videoHeight;
+      context.drawImage(document.getElementById('video'), 0, 0, canvas.width, canvas.height);
+
+      // Convert to PNG image
+      const imageData = canvas.toDataURL('image/png');
+      document.getElementById('capturedImage').src = imageData;
+      document.getElementById('capturedImage').style.display = 'block';
+      document.getElementById('video').style.display = 'none';
+      document.getElementById('capture').style.display = 'none';
+      document.getElementById('recapture').style.display = 'inline-block';  // Show recapture button
+
+      // Upload image to Imgur
+      uploadToImgur(imageData.split(',')[1]);  // Send only the base64 part of the image
+    });
+
+    // Re-capture the image
+    document.getElementById('recapture').addEventListener('click', () => {
+      document.getElementById('capturedImage').style.display = 'none';
+      document.getElementById('capture').style.display = 'inline-block';
+      document.getElementById('recapture').style.display = 'none';
+      document.getElementById('video').style.display = 'block';
+    });
+
+    // Initialize and start the video stream
+    window.onload = function() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const code = urlParams.get('code'); // Get the authorization code from the URL
+
+      if (code) {
+        // Exchange the code for an access token
+        getAccessTokenFromCode(code);
+      } else {
+        // Redirect to Imgur for authentication if code is not found
+        redirectToImgurAuth();
+      }
+
+      startVideoStream();
     };
+
+    // Swap camera functionality
+    document.getElementById('swapCamera').addEventListener('click', swapCamera);
   </script>
 
 </body>
 </html>
+CAN AUTO UPLOAD imgur ACC THAT I LOGIN TO -->
+<!-- CAN AUTO UPLOAD imgur ACC THAT I LOGIN TO
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Capture and Upload Photo to Imgur</title>
+  <style>
+    /* Video display and styling */
+    #video {
+      width: 100%;
+      height: auto;
+      object-fit: cover;
+      border: 2px solid #ccc;
+    }
+
+    #capture {
+      display: block;
+      margin: 20px auto;
+      padding: 10px 20px;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    #capture:hover {
+      background-color: #0056b3;
+    }
+
+    #capturedImage {
+      max-width: 100%;
+      margin-top: 20px;
+      display: none;
+    }
+
+    #recapture {
+      display: none;
+      padding: 10px 20px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    #recapture:hover {
+      background-color: #218838;
+    }
+
+    #swapCamera {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background-color: #FFC107;
+      color: white;
+      border: none;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    #swapCamera:hover {
+      background-color: #E0A800;
+    }
+
+    .container {
+      text-align: center;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background-color: #f4f4f9;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Capture and Upload Photo to Imgur</h1>
+  <div class="container">
+    <video id="video" autoplay muted playsinline></video>
+    <button id="capture">Capture</button>
+    <button id="swapCamera">Swap Camera</button>
+    <canvas id="canvas" style="display:none;"></canvas>
+    <img id="capturedImage" />
+    <button id="recapture">Re-capture</button>
+  </div>
+
+  <script>
+    // Imgur OAuth and API credentials
+    const CLIENT_ID = '9568a085be0e796'; // Replace with your Imgur Client ID
+    const CLIENT_SECRET = '27db22ce001cee2e068142b07a11e2e57dcf1632'; // Replace with your Imgur Client Secret
+    const OAUTH_URL = 'https://api.imgur.com/oauth2/authorize'; 
+    const ACCESS_TOKEN_URL = 'https://api.imgur.com/oauth2/token';
+    const API_URL = 'https://api.imgur.com/3/image'; 
+
+    let gapiLoaded = false;
+    let auth2;
+    let currentStream;
+    let currentDeviceId = null;
+    let videoWidth = 640;
+    let videoHeight = 480;
+    let accessToken = ''; // Will hold the access token after OAuth
+
+    // Redirect user to Imgur to authenticate and authorize the app
+    function redirectToImgurAuth() {
+      const redirectUri = encodeURIComponent('https://crystalfied.github.io/livefeed80/'); // Update with your callback URL
+      const authUrl = `${OAUTH_URL}?client_id=${CLIENT_ID}&response_type=code&state=123&redirect_uri=${redirectUri}`;
+      window.location.href = authUrl;
+    }
+
+    // Exchange authorization code for access token
+    function getAccessTokenFromCode(code) {
+      const data = {
+        client_id: CLIENT_ID,
+        client_secret: CLIENT_SECRET,
+        code: code,
+        grant_type: 'authorization_code',
+        redirect_uri: 'https://crystalfied.github.io/livefeed80/' // Update with your callback URL
+      };
+
+      fetch(ACCESS_TOKEN_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams(data)
+      })
+      .then(response => response.json())
+      .then(data => {
+        accessToken = data.access_token;
+        console.log('Access Token:', accessToken);
+      })
+      .catch(err => console.error('Error fetching access token:', err));
+    }
+
+    // Upload image to Imgur
+    function uploadToImgur(imageData) {
+      if (!accessToken) {
+        console.log('User not authenticated');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('image', imageData);
+
+      fetch(API_URL, {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer ' + accessToken,
+        },
+        body: formData,
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          console.log('Image uploaded successfully:', data);
+          alert('Image uploaded to Imgur!');
+        } else {
+          console.log('Upload failed:', data);
+        }
+      })
+      .catch(error => {
+        console.error('Error uploading image:', error);
+      });
+    }
+
+    // Start the video stream
+    function startVideoStream(deviceId = null) {
+      const constraints = {
+        video: {
+          deviceId: deviceId ? { exact: deviceId } : undefined,
+          width: { ideal: 1920 },
+          height: { ideal: 1080 },
+        }
+      };
+
+      if (currentStream) {
+        const tracks = currentStream.getTracks();
+        tracks.forEach(track => track.stop());
+      }
+
+      navigator.mediaDevices.getUserMedia(constraints)
+        .then(stream => {
+          currentStream = stream;
+          document.getElementById('video').srcObject = stream;
+
+          document.getElementById('video').onloadedmetadata = function() {
+            document.getElementById('video').play();
+            videoWidth = document.getElementById('video').videoWidth;
+            videoHeight = document.getElementById('video').videoHeight;
+          };
+        })
+        .catch(error => {
+          console.error('Error accessing camera: ', error);
+          alert('Error accessing camera: ' + error.message);
+        });
+    }
+
+    // Function to swap the camera (front/back)
+    function swapCamera() {
+      navigator.mediaDevices.enumerateDevices()
+        .then(devices => {
+          const videoDevices = devices.filter(device => device.kind === 'videoinput');
+          if (videoDevices.length < 2) {
+            alert('No additional camera available.');
+            return;
+          }
+          const nextDeviceId = videoDevices.find(device => device.deviceId !== currentDeviceId).deviceId;
+          currentDeviceId = nextDeviceId;
+          startVideoStream(currentDeviceId);
+        })
+        .catch(err => {
+          console.error('Error enumerating devices: ', err);
+          alert('Error enumerating devices: ' + err.message);
+        });
+    }
+
+    // Capture image from video
+    document.getElementById('capture').addEventListener('click', () => {
+      const canvas = document.getElementById('canvas');
+      const context = canvas.getContext('2d');
+      canvas.width = videoWidth;
+      canvas.height = videoHeight;
+      context.drawImage(document.getElementById('video'), 0, 0, canvas.width, canvas.height);
+
+      // Convert to PNG image
+      const imageData = canvas.toDataURL('image/png');
+      document.getElementById('capturedImage').src = imageData;
+      document.getElementById('capturedImage').style.display = 'block';
+      document.getElementById('video').style.display = 'none';
+      document.getElementById('capture').style.display = 'none';
+      document.getElementById('recapture').style.display = 'inline-block';  // Show recapture button
+
+      // Upload image to Imgur
+      uploadToImgur(imageData.split(',')[1]);  // Send only the base64 part of the image
+    });
+
+    // Re-capture the image
+    document.getElementById('recapture').addEventListener('click', () => {
+      document.getElementById('capturedImage').style.display = 'none';
+      document.getElementById('capture').style.display = 'inline-block';
+      document.getElementById('recapture').style.display = 'none';
+      document.getElementById('video').style.display = 'block';
+    });
+
+    // Initialize and start the video stream
+    window.onload = function() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const code = urlParams.get('code'); // Get the authorization code from the URL
+
+      if (code) {
+        // Exchange the code for an access token
+        getAccessTokenFromCode(code);
+      } else {
+        // Redirect to Imgur for authentication if code is not found
+        redirectToImgurAuth();
+      }
+
+      startVideoStream();
+    };
+
+    // Swap camera functionality
+    document.getElementById('swapCamera').addEventListener('click', swapCamera);
+  </script>
+
+</body>
+</html>
+CAN AUTO UPLOAD imgur ACC THAT I LOGIN TO -->
