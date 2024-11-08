@@ -34,8 +34,9 @@
     <canvas id="canvas" style="display:none;"></canvas>
     <img id="capturedImage" style="display:none;" />
     <button id="recapture" style="display:none;">Re-capture</button>
-
   </div>
+
+  <div id="loadingModal">Please wait, uploading your photo...</div>
 
   <script>
   
@@ -128,7 +129,7 @@
       document.getElementById('capture').style.display = 'none';
       document.getElementById('recapture').style.display = 'inline-block';
 
-      alert('Please wait, uploading your photo...');
+      document.getElementById('loadingModal').style.display = 'block';
 
       uploadToImgur(imageData.split(',')[1]);
     }
@@ -155,6 +156,7 @@
         if (data.success) {
           const imgUrl = data.data.link;
           localStorage.setItem('uploadedImageUrl', imgUrl); // Store the URL in localStorage
+          document.getElementById('loadingModal').style.display = 'none';
           alert('Moment shared successfully!');
         } else {
           console.log('Fail to share', data);
