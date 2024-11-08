@@ -13,7 +13,7 @@ body {
 
 /* Snowflakes effect container */
 .snowflakes {
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
   width: 100%;
@@ -54,9 +54,22 @@ body {
 
 /* Mobile Responsiveness */
 @media screen and (max-width: 600px) {
+  body {
+    background-size: cover; /* Ensure the background scales correctly */
+  }
+
   .snowflakes span {
-    font-size: 15px;
+    font-size: 15px; /* Make snowflakes smaller on mobile */
     animation-duration: calc(12s + random() * 10s); /* slower snowflakes */
+  }
+
+  h1 {
+    font-size: 28px;
+  }
+
+  button {
+    font-size: 14px;
+    padding: 8px 15px;
   }
 }
 
