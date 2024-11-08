@@ -40,7 +40,7 @@
     /* For better mobile and landscape compatibility */
     @media (orientation: landscape) {
       #video, #capturedImage {
-        max-width: 100%;
+        max-width: auto;
         height: auto;
       }
     }
@@ -210,12 +210,12 @@
     window.addEventListener('resize', function() {
       if (window.innerHeight > window.innerWidth) {
         // Portrait mode
-        videoWidth = 640;
-        videoHeight = 480;
+        videoWidth = 1080;
+        videoHeight = 1920;
       } else {
         // Landscape mode
-        videoWidth = 1280;
-        videoHeight = 720;
+        videoWidth = 1920;
+        videoHeight = 1080;
       }
       document.getElementById('video').style.width = videoWidth + 'px';
       document.getElementById('video').style.height = videoHeight + 'px';
