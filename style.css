@@ -24,6 +24,7 @@ body {
   display: block;
 }
 
+/* Snowflakes style */
 .snowflakes span {
   position: absolute;
   color: white;
