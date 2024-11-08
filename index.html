@@ -957,6 +957,7 @@ working code -->
   </style>
 </head>
 <body>
+
   <h1>Capture and Upload Photo to Imgur</h1>
   <div id="controls">
     <video id="video" autoplay playsinline></video>
@@ -980,6 +981,7 @@ working code -->
     let videoWidth = 640;
     let videoHeight = 480;
 
+    // Function to refresh the access token
     function refreshAccessToken() {
       const data = {
         client_id: CLIENT_ID,
@@ -987,6 +989,7 @@ working code -->
         grant_type: 'refresh_token',
         refresh_token: refreshToken
       };
+
       fetch(ACCESS_TOKEN_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -1000,7 +1003,9 @@ working code -->
           setTimeout(refreshAccessToken, (expiresIn - 60) * 1000);
         }
       })
-      .catch(error => console.error('Error refreshing access token:', error));
+      .catch(error => {
+        console.error('Error refreshing access token:', error);
+      });
     }
 
     window.onload = function() {
@@ -1008,30 +1013,41 @@ working code -->
       getCameraDevices();
     };
 
+    // Get the available camera devices
     function getCameraDevices() {
       navigator.mediaDevices.enumerateDevices()
         .then(devices => {
+          // Get video input devices
           availableCameras = devices.filter(device => device.kind === 'videoinput');
+          console.log(availableCameras); // Log devices to see all detected cameras
+
           if (availableCameras.length > 0) {
             currentDeviceId = availableCameras[currentCameraIndex].deviceId;
             startVideoStream(currentDeviceId);
+          } else {
+            console.log("No cameras detected");
           }
         })
-        .catch(error => console.error('Error getting camera devices:', error));
+        .catch(error => {
+          console.error('Error getting camera devices:', error);
+        });
     }
 
+    // Function to start the video stream
     function startVideoStream(deviceId = null) {
       const constraints = {
         video: {
           deviceId: deviceId ? { exact: deviceId } : undefined,
-          facingMode: currentCameraIndex % 2 === 0 ? 'environment' : 'user',
+          facingMode: currentCameraIndex % 2 === 0 ? 'environment' : 'user', // Toggle between front (user) and rear (environment) camera
           width: { ideal: 1920 },
           height: { ideal: 1080 },
         }
       };
+
       if (currentStream) {
         currentStream.getTracks().forEach(track => track.stop());
       }
+
       navigator.mediaDevices.getUserMedia(constraints)
         .then(stream => {
           currentStream = stream;
@@ -1048,28 +1064,34 @@ working code -->
         });
     }
 
+    // Capture the image and upload it to Imgur
     function captureImage() {
       const canvas = document.getElementById('canvas');
       const context = canvas.getContext('2d');
       canvas.width = videoWidth;
       canvas.height = videoHeight;
       context.drawImage(document.getElementById('video'), 0, 0, canvas.width, canvas.height);
+
       const imageData = canvas.toDataURL('image/png');
       document.getElementById('capturedImage').src = imageData;
       document.getElementById('capturedImage').style.display = 'block';
       document.getElementById('video').style.display = 'none';
       document.getElementById('capture').style.display = 'none';
       document.getElementById('recapture').style.display = 'inline-block';
+
       uploadToImgur(imageData.split(',')[1]);
     }
 
+    // Upload the image to Imgur
     function uploadToImgur(imageData) {
       if (!accessToken) {
         console.log('User not authenticated');
         return;
       }
+
       const formData = new FormData();
       formData.append('image', imageData);
+
       fetch('https://api.imgur.com/3/image', {
         method: 'POST',
         headers: {
@@ -1081,21 +1103,32 @@ working code -->
       .then(data => {
         if (data.success) {
           const imgUrl = data.data.link;
-          localStorage.setItem('uploadedImageUrl', imgUrl);
+          localStorage.setItem('uploadedImageUrl', imgUrl); // Store the URL in localStorage
           alert('Image uploaded successfully!');
         } else {
           console.log('Upload failed:', data);
         }
       })
-      .catch(error => console.error('Error uploading image:', error));
+      .catch(error => {
+        console.error('Error uploading image:', error);
+      });
     }
 
+    // Swap between front and rear cameras
     document.getElementById('swapCamera').addEventListener('click', () => {
+      // Increment the camera index and cycle through available cameras
       currentCameraIndex = (currentCameraIndex + 1) % availableCameras.length;
       currentDeviceId = availableCameras[currentCameraIndex].deviceId;
+      
+      // Explicitly stop the current stream before starting a new one
+      if (currentStream) {
+        currentStream.getTracks().forEach(track => track.stop());
+      }
+      
       startVideoStream(currentDeviceId);
     });
 
+    // Event listeners for buttons
     document.getElementById('capture').addEventListener('click', captureImage);
     document.getElementById('recapture').addEventListener('click', () => {
       document.getElementById('capturedImage').style.display = 'none';
@@ -1104,5 +1137,6 @@ working code -->
       document.getElementById('video').style.display = 'block';
     });
   </script>
+
 </body>
 </html>
