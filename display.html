@@ -27,11 +27,23 @@
   <script>
     // Create snowflakes elements dynamically
     const snowflakesContainer = document.querySelector('.snowflakes');
-    const numberOfSnowflakes = 50; // Adjust number of snowflakes
-
+    const numberOfSnowflakes = 100; // Increase the number for more snowflakes
+    
+    // Function to generate a random number between two values (inclusive)
+    function getRandomInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+    
+    // Generate snowflakes
     for (let i = 0; i < numberOfSnowflakes; i++) {
       const snowflake = document.createElement('span');
       snowflake.textContent = '❄️'; // Snowflake symbol
+      snowflake.style.animationDuration = `${getRandomInt(10, 30)}s`; // Random fall duration
+      snowflake.style.animationDelay = `-${getRandomInt(0, 10)}s`; // Random delay
+      snowflake.style.fontSize = `${getRandomInt(15, 30)}px`; // Random size
+      snowflake.style.left = `${getRandomInt(0, 100)}%`; // Random horizontal position
+      snowflake.style.animationTimingFunction = 'linear';
+      
       snowflakesContainer.appendChild(snowflake);
     }
     
