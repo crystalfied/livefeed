@@ -37,6 +37,13 @@
       line-height: 100vh;
       z-index: 1000;
     }
+    /* For better mobile and landscape compatibility */
+    @media (orientation: landscape) {
+      #video, #capturedImage {
+        max-width: 100%;
+        height: auto;
+      }
+    }
   </style>
 </head>
 <body>
@@ -198,6 +205,22 @@
       document.getElementById('recapture').style.display = 'none';
       document.getElementById('video').style.display = 'block';
     });
+
+    // Adjust canvas and video size on orientation change
+    window.addEventListener('resize', function() {
+      if (window.innerHeight > window.innerWidth) {
+        // Portrait mode
+        videoWidth = 640;
+        videoHeight = 480;
+      } else {
+        // Landscape mode
+        videoWidth = 1280;
+        videoHeight = 720;
+      }
+      document.getElementById('video').style.width = videoWidth + 'px';
+      document.getElementById('video').style.height = videoHeight + 'px';
+    });
+    
   </script>
 
 </body>
