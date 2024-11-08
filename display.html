@@ -24,13 +24,19 @@
 
   <script>
     const uploadedImage = document.getElementById('uploadedImage');
-    let currentImageUrl = '';
+    let currentImageUrl = localStorage.getItem('uploadedImageUrl'); // Get initial image URL
 
+    // Set the image if URL is available in localStorage
+    if (currentImageUrl) {
+      uploadedImage.src = currentImageUrl;
+    }
+
+    // Function to check for the updated image URL
     function checkForNewImage() {
       const newImageUrl = localStorage.getItem('uploadedImageUrl');
       if (newImageUrl && newImageUrl !== currentImageUrl) {
         currentImageUrl = newImageUrl;
-        uploadedImage.src = currentImageUrl;
+        uploadedImage.src = currentImageUrl; // Update the image on the page
       }
     }
 
