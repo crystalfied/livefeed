@@ -972,7 +972,7 @@ working code -->
     const CLIENT_ID = '9568a085be0e796';
     const CLIENT_SECRET = '2097a7d83130f607245fe51c00a2fc860e69be6c';
     let accessToken = 'b5376875134b4a11a02ec10ff8f3f9f3df33d7db';
-    let refreshToken = 'dfa5156ca7f1be8e2ced0f1fcf1b230c368b8a36'; // Replace with your actual refresh token
+    let refreshToken = 'dfa5156ca7f1be8e2ced0f1fcf1b230c368b8a36';
     const ACCESS_TOKEN_URL = 'https://api.imgur.com/oauth2/token';
     let currentStream = null;
     let currentDeviceId = null;
@@ -1098,15 +1098,196 @@ working code -->
           const imgUrl = data.data.link;
           console.log('Image uploaded successfully:', imgUrl);
           alert('Image uploaded to Imgur!');
-
           localStorage.setItem('uploadedImageUrl', imgUrl);
+        } else {
+          console.log('Upload failed:', data);
+        }
+      })
+      .catch(error => {
+        console.error('Error uploading image:', error);
+      });
+    }
 
-          const viewImageButton = document.createElement('button');
-          viewImageButton.innerText = 'View Uploaded Image';
-          viewImageButton.onclick = function() {
-            window.open('display.html', '_blank');
+    document.getElementById('capture').addEventListener('click', captureImage);
+    document.getElementById('swapCamera').addEventListener('click', swapCamera);
+    document.getElementById('recapture').addEventListener('click', () => {
+      document.getElementById('capturedImage').style.display = 'none';
+      document.getElementById('capture').style.display = 'inline-block';
+      document.getElementById('recapture').style.display = 'none';
+      document.getElementById('video').style.display = 'block';
+    });
+  </script>
+
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Capture and Upload Photo to Imgur</title>
+  <style>
+    #video, #capturedImage {
+      width: 100%;
+      max-width: 600px;
+      margin: 10px auto;
+      display: block;
+      border: 1px solid #ccc;
+    }
+    #controls {
+      text-align: center;
+      margin: 20px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin: 5px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Capture and Upload Photo to Imgur</h1>
+  <div id="controls">
+    <video id="video" autoplay playsinline></video>
+    <button id="capture">Capture</button>
+    <button id="swapCamera">Swap Camera</button>
+    <canvas id="canvas" style="display:none;"></canvas>
+    <img id="capturedImage" style="display:none;" />
+    <button id="recapture" style="display:none;">Re-capture</button>
+  </div>
+
+  <script>
+    const CLIENT_ID = '9568a085be0e796';
+    const CLIENT_SECRET = '2097a7d83130f607245fe51c00a2fc860e69be6c';
+    let accessToken = 'b5376875134b4a11a02ec10ff8f3f9f3df33d7db';
+    let refreshToken = 'dfa5156ca7f1be8e2ced0f1fcf1b230c368b8a36';
+    const ACCESS_TOKEN_URL = 'https://api.imgur.com/oauth2/token';
+    let currentStream = null;
+    let currentDeviceId = null;
+    let videoWidth = 640;
+    let videoHeight = 480;
+
+    function refreshAccessToken() {
+      const data = {
+        client_id: CLIENT_ID,
+        client_secret: CLIENT_SECRET,
+        grant_type: 'refresh_token',
+        refresh_token: refreshToken
+      };
+
+      fetch(ACCESS_TOKEN_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams(data)
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.access_token) {
+          accessToken = data.access_token;
+          console.log('New access token:', accessToken);
+          const expiresIn = data.expires_in || 3600;
+          setTimeout(refreshAccessToken, (expiresIn - 60) * 1000);
+        } else {
+          console.error('Failed to refresh access token:', data);
+        }
+      })
+      .catch(error => {
+        console.error('Error refreshing access token:', error);
+      });
+    }
+
+    window.onload = function() {
+      refreshAccessToken();
+      startVideoStream();
+    };
+
+    function startVideoStream(deviceId = null) {
+      const constraints = {
+        video: {
+          deviceId: deviceId ? { exact: deviceId } : undefined,
+          width: { ideal: 1920 },
+          height: { ideal: 1080 },
+        }
+      };
+
+      if (currentStream) {
+        currentStream.getTracks().forEach(track => track.stop());
+      }
+
+      navigator.mediaDevices.getUserMedia(constraints)
+        .then(stream => {
+          currentStream = stream;
+          document.getElementById('video').srcObject = stream;
+          document.getElementById('video').onloadedmetadata = function() {
+            videoWidth = this.videoWidth;
+            videoHeight = this.videoHeight;
+            this.play();
           };
-          document.getElementById('controls').appendChild(viewImageButton);
+        })
+        .catch(error => {
+          console.error('Error accessing camera:', error);
+          alert('Error accessing camera: ' + error.message);
+        });
+    }
+
+    function swapCamera() {
+      navigator.mediaDevices.enumerateDevices()
+        .then(devices => {
+          const videoDevices = devices.filter(device => device.kind === 'videoinput');
+          if (videoDevices.length < 2) {
+            alert('No additional camera available.');
+            return;
+          }
+          const nextDevice = videoDevices.find(device => device.deviceId !== currentDeviceId);
+          currentDeviceId = nextDevice.deviceId;
+          startVideoStream(currentDeviceId);
+        })
+        .catch(error => {
+          console.error('Error enumerating devices:', error);
+        });
+    }
+
+    function captureImage() {
+      const canvas = document.getElementById('canvas');
+      const context = canvas.getContext('2d');
+      canvas.width = videoWidth;
+      canvas.height = videoHeight;
+      context.drawImage(document.getElementById('video'), 0, 0, canvas.width, canvas.height);
+
+      const imageData = canvas.toDataURL('image/png');
+      document.getElementById('capturedImage').src = imageData;
+      document.getElementById('capturedImage').style.display = 'block';
+      document.getElementById('video').style.display = 'none';
+      document.getElementById('capture').style.display = 'none';
+      document.getElementById('recapture').style.display = 'inline-block';
+
+      uploadToImgur(imageData.split(',')[1]);
+    }
+
+    function uploadToImgur(imageData) {
+      if (!accessToken) {
+        console.log('User not authenticated');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('image', imageData);
+
+      fetch('https://api.imgur.com/3/image', {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer ' + accessToken,
+        },
+        body: formData,
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          const imgUrl = data.data.link;
+          console.log('Image uploaded successfully:', imgUrl);
+          alert('Image uploaded to Imgur!');
+          localStorage.setItem('uploadedImageUrl', imgUrl);
         } else {
           console.log('Upload failed:', data);
         }
