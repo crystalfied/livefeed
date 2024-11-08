@@ -1115,9 +1115,9 @@ working code -->
 
     // Swap between cameras by changing deviceId
     document.getElementById('swapCamera').addEventListener('click', () => {
-      if (availableCameras.length < 2) {
+      if (availableCameras.length <= 1) {
         alert("No additional camera available to swap.");
-        return;
+        return; // No swap action if only one camera is available
       }
 
       // Get the index of the current camera and find the next camera
