@@ -6,6 +6,12 @@
   <title>Capture the moment and share it with everyone</title>
   <link rel="stylesheet" href="style.css">
   <style>
+    /* Reset margins and padding for full-screen video */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
     /* Full-height container to keep video centered on scroll */
     .center-container {
       display: flex;
@@ -17,7 +23,8 @@
     }
       #video, #capturedImage {
         width: 100%;
-        max-width: 600px;
+        height: auto;
+        object-fit: cover;
         margin: 10px auto;
         display: block;
         border: 1px solid #ccc;
