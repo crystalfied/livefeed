@@ -34,7 +34,7 @@
     <canvas id="canvas" style="display:none;"></canvas>
     <img id="capturedImage" style="display:none;" />
     <button id="recapture" style="display:none;">Re-capture</button>
-    <div id="loadingMessage">Please wait, sharing your moment.</div>
+
   </div>
 
   <script>
@@ -128,6 +128,8 @@
       document.getElementById('capture').style.display = 'none';
       document.getElementById('recapture').style.display = 'inline-block';
 
+      alert('Please wait, uploading your photo...');
+
       uploadToImgur(imageData.split(',')[1]);
     }
 
@@ -150,7 +152,6 @@
       })
       .then(response => response.json())
       .then(data => {
-        document.getElementById('loadingMessage').style.display = 'none';
         if (data.success) {
           const imgUrl = data.data.link;
           localStorage.setItem('uploadedImageUrl', imgUrl); // Store the URL in localStorage
