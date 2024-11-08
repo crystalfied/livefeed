@@ -26,9 +26,7 @@
 </head>
 <body>
   
-  <div class="snowflakes"></div>
-  
-  <h1>Capture and Upload Photo to Imgur</h1>
+  <h1>Capture the moment and share it with everyone</h1>
   <div id="controls">
     <video id="video" autoplay playsinline></video>
     <button id="capture">Capture</button>
@@ -39,43 +37,6 @@
   </div>
 
   <script>
-    // Create snowflakes elements dynamically
-    const snowflakesContainer = document.querySelector('.snowflakes');
-    const numberOfSnowflakes = 100; // Increase this number for more snowflakes
-    
-    // Function to generate a random number between two values (inclusive)
-    function getRandomInt(min, max) {
-      return Math.floor(Math.random() * (max - min + 1)) + min;
-    }
-    
-    // Function to create and animate snowflakes
-    function createSnowflakes() {
-      for (let i = 0; i < numberOfSnowflakes; i++) {
-        const snowflake = document.createElement('span');
-        snowflake.textContent = '❄️'; // Snowflake symbol
-        
-        // Randomize snowflake size
-        snowflake.style.fontSize = `${getRandomInt(15, 30)}px`; // Random size between 15px and 30px
-        
-        // Randomize animation properties
-        snowflake.style.animationDuration = `${getRandomInt(10, 30)}s`; // Random fall duration (between 10s and 30s)
-        snowflake.style.animationDelay = `-${getRandomInt(0, 10)}s`; // Random delay (negative to start animation immediately)
-        
-        // Randomize horizontal position (from 0% to 100%)
-        snowflake.style.left = `${getRandomInt(0, 100)}%`;
-        
-        // Apply rotation animation
-        snowflake.style.animationName = 'snow, rotate';
-        
-        // Append snowflake to container
-        snowflakesContainer.appendChild(snowflake);
-      }
-    }
-    
-    // Call the function to create snowflakes when the page loads
-    window.onload = function() {
-      createSnowflakes();
-
   
     const CLIENT_ID = '9568a085be0e796';
     const CLIENT_SECRET = '2097a7d83130f607245fe51c00a2fc860e69be6c';
@@ -167,6 +128,7 @@
       document.getElementById('recapture').style.display = 'inline-block';
 
       uploadToImgur(imageData.split(',')[1]);
+      alert('Please wait!');
     }
 
     // Upload the image to Imgur
@@ -191,9 +153,9 @@
         if (data.success) {
           const imgUrl = data.data.link;
           localStorage.setItem('uploadedImageUrl', imgUrl); // Store the URL in localStorage
-          alert('Image uploaded successfully!');
+          alert('Moment shared successfully!');
         } else {
-          console.log('Upload failed:', data);
+          console.log('Fail to share', data);
         }
       })
       .catch(error => {
