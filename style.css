@@ -20,6 +20,7 @@ body {
   height: 100%;
   pointer-events: none;
   z-index: 1000;
+  overflow: hidden; /* Prevent snowflakes from overflowing */
 }
 
 /* Snowflakes style */
@@ -30,6 +31,7 @@ body {
   opacity: 0.8;
   animation: snow 10s linear infinite, rotate 10s linear infinite;
   z-index: 1000;
+  user-select: none;
 }
 
 /* Snowflakes fall animation */
