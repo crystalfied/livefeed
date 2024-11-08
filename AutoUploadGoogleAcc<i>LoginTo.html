@@ -1,0 +1,220 @@
+<!-- CAN AUTO UPLOAD GOOGLE ACC THAT I LOGIN TO
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Capture and Upload Photo to Google Drive</title>
+  <style>
+    /* Styles here */
+    #video, #capturedImage {
+      width: 100%;
+      max-width: 600px;
+      margin: 10px auto;
+      display: block;
+      border: 1px solid #ccc;
+    }
+    #controls {
+      text-align: center;
+      margin: 20px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin: 5px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Capture and Upload Photo to Google Drive</h1>
+  <div id="controls">
+    <video id="video" autoplay playsinline></video>
+    <button id="capture">Capture</button>
+    <button id="swapCamera">Swap Camera</button>
+    <canvas id="canvas" style="display:none;"></canvas>
+    <img id="capturedImage" style="display:none;" />
+    <button id="recapture" style="display:none;">Re-capture</button>
+    <button id="authButton" onclick="handleAuthClick()">Sign In with Google</button>
+  </div>
+
+  // Include GIS client library
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="https://apis.google.com/js/api.js"></script>
+
+  <script>
+    const CLIENT_ID = '236823481359-hec318cfi6l4dlori28m4o71b6q46ka7.apps.googleusercontent.com';
+    const API_KEY = 'AIzaSyA0tbk_qHuSg1PfZEEw_kAftrrgUVdOBpY';
+    const SCOPES = 'https://www.googleapis.com/auth/drive.file';
+
+    let currentStream = null;
+    let currentDeviceId = null;
+    let tokenClient;
+    let videoWidth = 640;
+    let videoHeight = 480;
+
+    // Initialize Google API client for Drive access
+    function initGoogleAPI() {
+      gapi.load('client', () => {
+        gapi.client.init({
+          apiKey: API_KEY,
+          discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
+        }).then(() => {
+          console.log("Google API client loaded successfully.");
+        }).catch(error => {
+          console.error("Error initializing Google API client", error);
+        });
+      });
+    }
+
+    // Initialize the token client for OAuth
+    function initTokenClient() {
+      tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: CLIENT_ID,
+        scope: SCOPES,
+        callback: (tokenResponse) => {
+          console.log('Token acquired:', tokenResponse);
+        },
+      });
+    }
+
+    function handleAuthClick() {
+      tokenClient.requestAccessToken({ prompt: '' });
+    }
+
+    function startVideoStream(deviceId = null) {
+      const constraints = {
+        video: {
+          deviceId: deviceId ? { exact: deviceId } : undefined,
+          width: { ideal: 1920 },
+          height: { ideal: 1080 },
+        }
+      };
+
+      // Stop previous video stream if any
+      if (currentStream) {
+        currentStream.getTracks().forEach(track => track.stop());
+      }
+
+      navigator.mediaDevices.getUserMedia(constraints)
+        .then(stream => {
+          currentStream = stream;
+          document.getElementById('video').srcObject = stream;
+
+          document.getElementById('video').onloadedmetadata = function() {
+            videoWidth = this.videoWidth;
+            videoHeight = this.videoHeight;
+            this.play();
+          };
+        })
+        .catch(error => {
+          console.error('Error accessing camera:', error);
+          alert('Error accessing camera: ' + error.message);
+        });
+    }
+
+    function swapCamera() {
+      navigator.mediaDevices.enumerateDevices()
+        .then(devices => {
+          const videoDevices = devices.filter(device => device.kind === 'videoinput');
+          if (videoDevices.length < 2) {
+            alert('No additional camera available.');
+            return;
+          }
+          // Toggle between available cameras
+          const nextDevice = videoDevices.find(device => device.deviceId !== currentDeviceId);
+          currentDeviceId = nextDevice.deviceId;
+          startVideoStream(currentDeviceId);
+        })
+        .catch(error => {
+          console.error('Error enumerating devices:', error);
+        });
+    }
+
+    function captureImage() {
+      const canvas = document.getElementById('canvas');
+      const context = canvas.getContext('2d');
+      canvas.width = videoWidth;
+      canvas.height = videoHeight;
+      context.drawImage(document.getElementById('video'), 0, 0, canvas.width, canvas.height);
+
+      const imageData = canvas.toDataURL('image/png');
+      document.getElementById('capturedImage').src = imageData;
+      document.getElementById('capturedImage').style.display = 'block';
+      document.getElementById('video').style.display = 'none';
+      document.getElementById('capture').style.display = 'none';
+      document.getElementById('recapture').style.display = 'inline-block';
+
+      uploadToGoogleDrive(imageData);
+    }
+
+    function uploadToGoogleDrive(imageData) {
+      if (!gapi.client) {
+        console.log('Google API client not initialized');
+        alert('Please wait until Google API is initialized');
+        return;
+      }
+
+      const boundary = '-------314159265358979323846';
+      const delimiter = "\r\n--" + boundary + "\r\n";
+      const closeDelimiter = "\r\n--" + boundary + "--";
+
+      const metadata = {
+        'name': 'captured_image.png',
+        'mimeType': 'image/png'
+      };
+
+      const base64Data = imageData.split(',')[1];
+      const multipartRequestBody =
+        delimiter +
+        'Content-Type: application/json; charset=UTF-8\r\n\r\n' +
+        JSON.stringify(metadata) +
+        delimiter +
+        'Content-Type: image/png\r\n' +
+        'Content-Transfer-Encoding: base64\r\n\r\n' +
+        base64Data +
+        closeDelimiter;
+
+      gapi.client.request({
+        'path': '/upload/drive/v3/files?uploadType=multipart',
+        'method': 'POST',
+        'headers': {
+          'Authorization': `Bearer ${gapi.auth.getToken().access_token}`,
+          'Content-Type': `multipart/related; boundary="${boundary}"`,
+        },
+        'body': multipartRequestBody
+      }).then(response => {
+        console.log('File uploaded successfully', response);
+        alert('Image uploaded to Google Drive!');
+      }).catch(error => {
+        console.error('Error uploading file', error);
+      });
+    }
+
+    document.getElementById('capture').addEventListener('click', captureImage);
+    document.getElementById('swapCamera').addEventListener('click', swapCamera);
+    document.getElementById('recapture').addEventListener('click', () => {
+      document.getElementById('capturedImage').style.display = 'none';
+      document.getElementById('capture').style.display = 'inline-block';
+      document.getElementById('recapture').style.display = 'none';
+      document.getElementById('video').style.display = 'block';
+    });
+
+    window.onload = function() {
+      initGoogleAPI();
+      initTokenClient();
+      navigator.mediaDevices.enumerateDevices().then(devices => {
+        const videoDevices = devices.filter(device => device.kind === 'videoinput');
+        if (videoDevices.length > 0) {
+          currentDeviceId = videoDevices[0].deviceId;
+          startVideoStream(currentDeviceId);
+        } else {
+          alert('No video devices found.');
+        }
+      });
+    };
+  </script>
+
+</body>
+</html>
+CAN AUTO UPLOAD GOOGLE ACC THAT I LOGIN TO-->
