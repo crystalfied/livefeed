@@ -47,19 +47,6 @@
       snowflakesContainer.appendChild(snowflake);
     }
     
-    // Generate snowflakes
-    for (let i = 0; i < numberOfSnowflakes; i++) {
-      const snowflake = document.createElement('span');
-      snowflake.textContent = '❄️'; // Snowflake symbol
-      snowflake.style.animationDuration = `${getRandomInt(10, 30)}s`; // Random fall duration
-      snowflake.style.animationDelay = `-${getRandomInt(0, 10)}s`; // Random delay
-      snowflake.style.fontSize = `${getRandomInt(15, 30)}px`; // Random size
-      snowflake.style.left = `${getRandomInt(0, 100)}%`; // Random horizontal position
-      snowflake.style.animationTimingFunction = 'linear';
-      
-      snowflakesContainer.appendChild(snowflake);
-    }
-    
     const CLIENT_ID = '9568a085be0e796'; // Your Imgur Client ID
     const CLIENT_SECRET = '2097a7d83130f607245fe51c00a2fc860e69be6c'; // Your Imgur Client Secret
     let accessToken = 'b5376875134b4a11a02ec10ff8f3f9f3df33d7db'; // Your initial access token
