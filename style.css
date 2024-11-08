@@ -1,11 +1,14 @@
 /* General body styling */
 body {
   font-family: 'Arial', sans-serif;
-  background: linear-gradient(to top, #ffffff, #b3e0ff); /* Light blue gradient background */
+  background: url('https://www.transparenttextures.com/patterns/snow.png') repeat, 
+              url('https://images.unsplash.com/photo-1513110506062-7f7c63cc758f') no-repeat center center fixed; 
+  background-size: cover;
   color: #333;
   margin: 0;
   padding: 0;
   overflow-x: hidden;
+  height: 100vh;
 }
 
 /* Snowflakes animation */
@@ -58,8 +61,8 @@ body {
 h1 {
   text-align: center;
   color: #d32f2f; /* Christmas red */
-  font-size: 2.5rem;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+  font-size: 3rem;
+  text-shadow: 3px 3px 5px rgba(0, 0, 0, 0.3);
   margin-top: 50px;
 }
 
@@ -109,26 +112,11 @@ h1 {
   background-color: #ff5722; /* Darker orange */
 }
 
-/* Styling for snowflakes animation */
-.snowflakes span {
-  font-size: 24px;
-  animation: snow 10s linear infinite;
-  opacity: 0.8;
-}
-
-.snowflakes span:nth-child(odd) {
-  animation-duration: 12s;
-  font-size: 18px;
-}
-
-.snowflakes span:nth-child(even) {
-  animation-duration: 15s;
-  font-size: 22px;
-}
-
 /* Additional festive styling for background */
 body {
-  background: url('https://www.transparenttextures.com/patterns/snow.png') repeat, #81d4fa;
+  background: url('https://images.unsplash.com/photo-1513110506062-7f7c63cc758f') no-repeat center center fixed, 
+              url('https://www.transparenttextures.com/patterns/snow.png') repeat;
+  background-size: cover, auto;
 }
 
 /* Styling for the video and canvas */
