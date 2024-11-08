@@ -1,7 +1,7 @@
 /* General body styling */
 body {
   font-family: 'Arial', sans-serif;
-  background: url('https://images.unsplash.com/photo-1513110506062-7f7c63cc758f') no-repeat center center fixed;
+  background: url('https://images.unsplash.com/photo-1513110506062-7f7c63cc758f?crop=entropy&cs=tinysrgb&fit=max&ixid=MnwzNjUyOXwwfDF8c2VhY2h8Mnx8Y3hyaXN0bWFzfGVufDB8fHx8fDE2NzgwMzM1MTQ&ixlib=rb-1.2.1&q=80&w=1080') no-repeat center center fixed;
   background-size: cover;
   color: #fff;
   margin: 0;
