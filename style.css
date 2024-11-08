@@ -12,7 +12,7 @@ body {
   position: relative;
 }
 
-/* Snowflakes animation */
+/* Snowflakes effect */
 .snowflakes {
   position: fixed;
   top: 0;
@@ -21,19 +21,15 @@ body {
   height: 100%;
   pointer-events: none;
   z-index: 1000;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
+  display: block;
 }
 
 .snowflakes span {
   position: absolute;
   color: white;
   font-size: 20px;
-  animation: snow 10s linear infinite, rotate 10s linear infinite;
   opacity: 0.7;
+  animation: snow 10s linear infinite, rotate 10s linear infinite;
   z-index: 1000;
 }
 
@@ -55,136 +51,46 @@ body {
   }
 }
 
-/* Create varying snowflakes sizes, speeds, and random positioning */
+/* Randomize snowflake size, speed, and positions */
 .snowflakes span:nth-child(odd) {
-  animation-duration: 15s;
   font-size: 18px;
-  animation-delay: -5s; /* Random delay */
-  left: calc(100% * random(0,1)); /* Random horizontal start */
+  animation-duration: 15s;
+  animation-delay: -5s;
+  left: calc(100% * (random() / 100)); /* Random horizontal positioning */
 }
 
 .snowflakes span:nth-child(even) {
-  animation-duration: 20s;
   font-size: 22px;
+  animation-duration: 20s;
   animation-delay: -3s;
-  left: calc(100% * random(0,1)); /* Random horizontal start */
+  left: calc(100% * (random() / 100)); /* Random horizontal positioning */
 }
 
 .snowflakes span:nth-child(3n) {
-  animation-duration: 18s;
   font-size: 28px;
+  animation-duration: 18s;
   animation-delay: -7s;
-  left: calc(100% * random(0,1)); /* Random horizontal start */
+  left: calc(100% * (random() / 100)); /* Random horizontal positioning */
 }
 
 .snowflakes span:nth-child(4n) {
-  animation-duration: 12s;
   font-size: 24px;
+  animation-duration: 12s;
   animation-delay: -2s;
-  left: calc(100% * random(0,1)); /* Random horizontal start */
+  left: calc(100% * (random() / 100)); /* Random horizontal positioning */
 }
 
 .snowflakes span:nth-child(5n) {
-  animation-duration: 25s;
   font-size: 30px;
+  animation-duration: 25s;
   animation-delay: -10s;
-  left: calc(100% * random(0,1)); /* Random horizontal start */
+  left: calc(100% * (random() / 100)); /* Random horizontal positioning */
 }
 
-/* Header styling */
-h1 {
-  text-align: center;
-  color: #ff0000; /* Christmas red */
-  font-size: 3rem;
-  text-shadow: 3px 3px 5px rgba(0, 0, 0, 0.3);
-  margin-top: 50px;
-}
-
-/* Styling for the uploaded image display */
-#uploadedImage {
-  width: 100%;
-  max-width: 600px;
-  margin: 20px auto;
-  display: block;
-  border: 5px solid #ff0000; /* Red border */
-  border-radius: 15px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  background-color: #f5f5f5; /* Light background for the image */
-}
-
-/* Styling for controls */
-#controls {
-  text-align: center;
-  margin-top: 20px;
-}
-
-#controls button {
-  background-color: #2e7d32; /* Festive green */
-  color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 12px 25px;
-  font-size: 1.1rem;
-  margin: 10px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-#controls button:hover {
-  background-color: #388e3c; /* Darker green on hover */
-}
-
-#controls button:active {
-  background-color: #1b5e20; /* Even darker green on active */
-}
-
-#controls button:disabled {
-  background-color: #888; /* Disable button when inactive */
-}
-
-/* Capture, Swap, and Recapture buttons */
-#capture, #swapCamera, #recapture {
-  background-color: #ff7043; /* Festive orange */
-}
-
-#capture:hover, #swapCamera:hover, #recapture:hover {
-  background-color: #ff5722; /* Darker orange */
-}
-
-#capture:disabled, #swapCamera:disabled, #recapture:disabled {
-  background-color: #888; /* Disabled state */
-}
-
-/* Video and Image Display */
-#video, #capturedImage {
-  max-width: 100%;
-  border: 2px solid #2e7d32; /* Green border for video/capture image */
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  margin: 10px auto;
-  display: block;
-}
-
-#canvas {
-  display: none;
-}
-
-/* Responsive design for mobile devices */
+/* Ensure snowflakes appear randomly on smaller screens as well */
 @media screen and (max-width: 600px) {
-  h1 {
-    font-size: 2rem;
-  }
-
-  #controls button {
-    padding: 10px 20px;
-    font-size: 1rem;
-  }
-
-  #video, #capturedImage {
-    max-width: 90%;
-  }
-
-  #uploadedImage {
-    max-width: 90%;
+  .snowflakes span {
+    font-size: 12px;
+    animation-duration: 15s;
   }
 }
