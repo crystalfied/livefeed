@@ -6,34 +6,21 @@
   <title>Capture the moment and share it with everyone</title>
   <link rel="stylesheet" href="style.css">
   <style>
-    /* Reset margins and padding for full-screen video */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
+    .container {
+      text-align: center;
+      max-width: 600px;
+      margin: 0 auto;
     }
-    /* Full-height container to keep video centered on scroll */
-    .center-container {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh; /* Full viewport height */
-      box-sizing: border-box;
-    }
-      #video, #capturedImage {
-        width: 100%;
-        height: auto;
-        margin: 10px auto;
-        display: block;
-        border: 1px solid #ccc;
-      }
-    #controls {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+    #video, #capturedImage {
       width: 100%;
-      max-width: 600px; /* Set a max width for the container */
-      margin: 0 auto; /* Center the container */
+      max-width: 600px;
+      margin: 10px auto;
+      display: block;
+      border: 1px solid #ccc;
+    }
+    #controls {
+      text-align: center;
+      margin: 20px;
     }
     button {
       padding: 10px 20px;
