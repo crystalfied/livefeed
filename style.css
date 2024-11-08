@@ -11,7 +11,7 @@ body {
   position: relative;
 }
 
-/* Snowflakes effect */
+/* Snowflakes effect container */
 .snowflakes {
   position: fixed;
   top: 0;
@@ -36,7 +36,7 @@ body {
 /* Snow falling animation */
 @keyframes snow {
   0% {
-    transform: translateY(-100px); /* Start above the viewport */
+    transform: translateY(-100px); /* Start from above the viewport */
   }
   100% {
     transform: translateY(100vh); /* End at the bottom of the viewport */
@@ -53,20 +53,11 @@ body {
   }
 }
 
-/* Randomize snowflake size, speed, and positions */
-.snowflakes span {
-  left: calc(100% * (random() / 100)); /* Random horizontal positioning */
-  animation-duration: calc(10s + random() * 20s); /* Random fall duration */
-  animation-delay: calc(-10s + random() * 5s); /* Random delay */
-  font-size: calc(15px + random() * 20px); /* Random size */
-  animation-timing-function: linear;
-}
-
 /* Mobile Responsiveness */
 @media screen and (max-width: 600px) {
   .snowflakes span {
-    font-size: 12px;
-    animation-duration: calc(15s + random() * 10s);
+    font-size: 15px;
+    animation-duration: calc(12s + random() * 10s); /* slower snowflakes */
   }
 }
 
