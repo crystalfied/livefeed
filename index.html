@@ -10,6 +10,8 @@
       width: 100%;
       max-width: 600px;
       margin: 10px auto;
+      display: block;
+      border: 1px solid #ccc;
     }
     #controls {
       text-align: center;
@@ -35,21 +37,11 @@
       line-height: 100vh;
       z-index: 1000;
     }
-    /* For better mobile and landscape compatibility */
-    @media (orientation: landscape) {
-      #video, #capturedImage {
-        width: 100%;
-        max-width: 600%;
-        height: auto;
-
-      }
-    }
   </style>
 </head>
 <body>
   
   <h1>Capture the moment and share it with everyone</h1>
-  <div class="center-container">
   <div id="controls">
     <video id="video" autoplay playsinline></video>
     <button id="capture">Capture</button>
@@ -206,22 +198,6 @@
       document.getElementById('recapture').style.display = 'none';
       document.getElementById('video').style.display = 'block';
     });
-
-    // Adjust canvas and video size on orientation change
-    window.addEventListener('resize', function() {
-      if (window.innerHeight > window.innerWidth) {
-        // Portrait mode
-        videoWidth = 640;
-        videoHeight = 480;
-      } else {
-        // Landscape mode
-        videoWidth = 1280;
-        videoHeight = 720;
-      }
-      document.getElementById('video').style.width = videoWidth + 'px';
-      document.getElementById('video').style.height = videoHeight + 'px';
-    });
-    
   </script>
 
 </body>
