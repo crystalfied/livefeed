@@ -52,6 +52,30 @@
       max-width: 150px;
     }
 
+    /* Landscape orientation styles */
+    @media (orientation: landscape) {
+      #controls {
+        flex-direction: row;
+        align-items: flex-start;
+      }
+
+      #video, #capturedImage {
+        max-width: 60vw;
+        max-height: 100vh;
+      }
+
+      #buttonContainer {
+        flex-direction: column;
+        align-items: center;
+        margin-top: 0;
+        margin-left: 10px;
+      }
+
+      button {
+        width: 100%;
+      }
+    }
+
     #loadingModal {
       display: none;
       position: fixed;
