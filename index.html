@@ -2,26 +2,35 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Capture the moment and share it with everyone</title>
   <link rel="stylesheet" href="style.css">
   <style>
+    body {
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden; /* Prevent horizontal scrolling */
+    }
+
     #video, #capturedImage {
       width: 100%;
-      max-width: 600px;
+      max-width: 100%; /* Ensure no element overflows horizontally */
       margin: 10px auto;
       display: block;
       border: 1px solid #ccc;
     }
+
     #controls {
       text-align: center;
       margin: 20px;
     }
+
     button {
       padding: 10px 20px;
       font-size: 16px;
       margin: 5px;
     }
+
     /* Custom Loading Modal */
     #loadingModal {
       display: none; /* Hidden initially */
