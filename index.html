@@ -36,10 +36,20 @@
       background-color: black; /* Fallback background for video */
     }
 
+    #buttonContainer {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap; /* Wrap buttons on small screens */
+      gap: 10px;
+      margin-top: 10px;
+    }
+
     button {
       padding: 10px 20px;
       font-size: 16px;
-      margin: 5px;
+      flex: 1; /* Make buttons take equal space */
+      min-width: 100px;
+      max-width: 150px;
     }
 
     #loadingModal {
@@ -59,14 +69,17 @@
   </style>
 </head>
 <body>
-  
+  <h1>Capture the moment and share it with everyone</h1>
   <div id="controls">
     <video id="video" autoplay playsinline></video>
     <img id="capturedImage" style="display:none;" />
     <canvas id="canvas" style="display:none;"></canvas>
-    <button id="capture">Capture</button>
-    <button id="swapCamera">Swap Camera</button>
-    <button id="recapture" style="display:none;">Re-capture</button>
+
+    <div id="buttonContainer">
+      <button id="capture">Capture</button>
+      <button id="swapCamera">Swap Camera</button>
+      <button id="recapture" style="display:none;">Re-capture</button>
+    </div>
   </div>
 
   <div id="loadingModal">Sharing your moment, please wait</div>
