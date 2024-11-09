@@ -57,7 +57,14 @@
       min-width: 120px;
       max-width: 150px;
     }
-    
+    /* Portrait mode adjustments */
+    @media (orientation: portrait) {
+      /* Make buttons appear side by side in portrait mode */
+      #buttonContainer {
+        flex-direction: row; /* Align buttons side by side */
+        gap: 20px; /* Space between buttons */
+      }
+    }
     /* Landscape mode adjustments */
     @media (orientation: landscape) {
       /* Layout video and buttons side by side */
