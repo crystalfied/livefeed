@@ -12,6 +12,7 @@
       display: flex;
       justify-content: center;
       align-items: center;
+      flex-direction: column;
       height: 100vh;
       overflow: hidden;
       background-color: #f9f9f9;
@@ -25,14 +26,14 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
     }
 
     #video {
       width: 100%;
-      height: 100vh;
-      object-fit: cover; /* Makes the video cover the full area without stretching */
-      background-color: black; /* Fallback background in case video doesn't load */
+      max-width: 600px;
+      max-height: 60vh; /* Limits the video height to 60% of the viewport */
+      object-fit: cover; /* Scales video without stretching */
+      background-color: black; /* Fallback background if video doesn't load */
     }
 
     #capturedImage {
