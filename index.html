@@ -6,16 +6,22 @@
   <title>Capture the moment and share it with everyone</title>
   <link rel="stylesheet" href="style.css">
   <style>
-    /* Main body styling */
+    /* Body styling */
     body {
       margin: 0;
       padding: 0;
       display: flex;
-      flex-direction: column;
+      justify-content: center;
       align-items: center;
-      min-height: 100vh;
-      overflow-y: auto; /* Allow scrolling for the entire page */
+      flex-direction: column;
+      height: 100vh;
       background-color: #f9f9f9;
+      overflow: auto;
+    }
+
+    h1 {
+      text-align: center;
+      margin-top: 10px;
     }
 
     #controls {
@@ -24,7 +30,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 10px;
+      justify-content: center;
       box-sizing: border-box;
     }
 
@@ -36,11 +42,11 @@
       background-color: black;
     }
 
-    /* Button container styles */
+    /* Button container styling */
     #buttonContainer {
       display: flex;
       justify-content: center;
-      flex-wrap: wrap;
+      flex-wrap: wrap; /* Wrap buttons on small screens */
       gap: 10px;
       margin-top: 10px;
     }
@@ -48,42 +54,37 @@
     button {
       padding: 10px 20px;
       font-size: 16px;
-      flex: 1;
-      min-width: 100px;
+      min-width: 120px;
       max-width: 150px;
     }
 
     /* Landscape mode adjustments */
     @media (orientation: landscape) {
-      /* Make #controls container take full width and allow buttons on the right */
+      /* Make #controls container take full width and adjust layout */
       #controls {
-        flex-direction: row;
+        flex-direction: row; /* Layout video and buttons side by side */
         justify-content: flex-start;
-        max-height: 100vh;
+        align-items: flex-start;
+        width: 100%;
       }
 
-      #video, #capturedImage {
-        max-height: 80vh; /* Reduce video/image height in landscape */
+      /* Video stream styling in landscape */
+      #video {
         flex: 1;
+        max-height: 80vh;
       }
 
-      /* Position buttons on the right side */
+      /* Button container placed on the right side */
       #buttonContainer {
         flex-direction: column;
-        justify-content: flex-start;
         position: absolute;
-        top: 10%;
         right: 10%;
+        top: 10%;
+        z-index: 1;
       }
 
       button {
-        margin-bottom: 10px;
-        min-width: 120px;
-      }
-
-      /* Prevent video and buttons from being squished in landscape mode */
-      body {
-        overflow-x: hidden; /* Prevent horizontal scroll */
+        margin-bottom: 10px; /* Add spacing between buttons */
       }
     }
 
@@ -105,6 +106,7 @@
   </style>
 </head>
 <body>
+
   <h1>Capture the moment and share it with everyone</h1>
   <div id="controls">
     <video id="video" autoplay playsinline></video>
