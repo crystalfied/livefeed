@@ -55,12 +55,30 @@
 
     /* Landscape mode adjustments */
     @media (orientation: landscape) {
+      /* Make #controls container take full width and allow buttons on the right */
       #controls {
-        max-height: 90vh; /* Allow space for scrolling in landscape */
+        flex-direction: row;
+        justify-content: flex-start;
+        max-height: 100vh;
       }
 
       #video, #capturedImage {
-        max-height: 50vh; /* Reduce video/image height to show buttons below */
+        max-height: 80vh; /* Reduce video/image height in landscape */
+        flex: 1;
+      }
+
+      /* Position buttons on the right side */
+      #buttonContainer {
+        flex-direction: column;
+        justify-content: flex-start;
+        position: absolute;
+        top: 10%;
+        right: 10%;
+      }
+
+      button {
+        margin-bottom: 10px;
+        min-width: 120px;
       }
     }
 
