@@ -54,7 +54,6 @@
   <div id="loadingModal">Sharing your moment, please wait</div>
 
   <script>
-  
     const CLIENT_ID = '9568a085be0e796';
     const CLIENT_SECRET = '2097a7d83130f607245fe51c00a2fc860e69be6c';
     let accessToken = 'b5376875134b4a11a02ec10ff8f3f9f3df33d7db';
@@ -62,8 +61,6 @@
     const ACCESS_TOKEN_URL = 'https://api.imgur.com/oauth2/token';
     let currentStream = null;
     let currentDeviceId = null;
-    let videoWidth = 640;
-    let videoHeight = 480;
 
     // Function to refresh the access token
     function refreshAccessToken() {
@@ -94,20 +91,31 @@
 
     window.onload = function() {
       refreshAccessToken();
+      adjustVideoOrientation();  // Adjust based on initial orientation
       startVideoStream('user');  // Default to the front camera
+
+      // Adjust orientation on orientation change
+      window.addEventListener("orientationchange", adjustVideoOrientation);
     };
 
-    // Function to start the video stream
+    // Adjust video dimensions based on orientation
+    function adjustVideoOrientation() {
+      const orientation = window.innerWidth > window.innerHeight ? 'landscape' : 'portrait';
+      const videoElement = document.getElementById('video');
+      videoElement.style.width = orientation === 'landscape' ? '100%' : 'auto';
+      videoElement.style.height = orientation === 'portrait' ? '100%' : 'auto';
+    }
+
+    // Start the video stream
     function startVideoStream(facingMode = 'user') {
       const constraints = {
         video: {
-          facingMode: facingMode, // user for front camera, environment for back camera
+          facingMode: facingMode,
           width: { ideal: 1920 },
           height: { ideal: 1080 },
         }
       };
 
-      // Stop the current stream if any
       if (currentStream) {
         currentStream.getTracks().forEach(track => track.stop());
         currentStream = null;
@@ -117,11 +125,6 @@
         .then(stream => {
           currentStream = stream;
           document.getElementById('video').srcObject = stream;
-          document.getElementById('video').onloadedmetadata = function() {
-            videoWidth = this.videoWidth;
-            videoHeight = this.videoHeight;
-            this.play();
-          };
         })
         .catch(error => {
           console.error('Error accessing camera:', error);
@@ -133,9 +136,12 @@
     function captureImage() {
       const canvas = document.getElementById('canvas');
       const context = canvas.getContext('2d');
-      canvas.width = videoWidth;
-      canvas.height = videoHeight;
-      context.drawImage(document.getElementById('video'), 0, 0, canvas.width, canvas.height);
+      const video = document.getElementById('video');
+
+      // Set canvas dimensions based on current video orientation
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
       const imageData = canvas.toDataURL('image/png');
       document.getElementById('capturedImage').src = imageData;
@@ -170,7 +176,7 @@
       .then(data => {
         if (data.success) {
           const imgUrl = data.data.link;
-          localStorage.setItem('uploadedImageUrl', imgUrl); // Store the URL in localStorage
+          localStorage.setItem('uploadedImageUrl', imgUrl);
           document.getElementById('loadingModal').style.display = 'none';
           alert('Moment shared successfully!');
         } else {
@@ -182,11 +188,10 @@
       });
     }
 
-    // Swap between cameras by changing facingMode
+    // Swap between cameras
     document.getElementById('swapCamera').addEventListener('click', () => {
       const currentFacingMode = document.getElementById('video').srcObject.getVideoTracks()[0].getSettings().facingMode;
-      
-      const nextFacingMode = currentFacingMode === 'user' ? 'environment' : 'user'; // Swap the facingMode
+      const nextFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
       startVideoStream(nextFacingMode);
     });
 
