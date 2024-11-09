@@ -8,8 +8,9 @@
   <style>
     /* Default styling for the image display */
     #uploadedImage {
-      width: 100%;
-      max-width: 600px;  /* Default maximum size */
+      width: 100%;  /* Image takes up 100% of the container */
+      height: auto;  /* Maintain aspect ratio */
+      max-width: 100%;  /* Don't scale larger than the screen width */
       margin: 20px auto;
       display: block;
       border: 1px solid #ccc;
@@ -18,9 +19,17 @@
 
     /* Styling for landscape images */
     .landscape {
-      width: 100%;  /* Make the image fill available width */
-      height: auto;  /* Maintain aspect ratio */
-      max-width: 1000px;  /* Larger width for landscape images */
+      width: 100%;  /* Ensures the image takes up the full container width */
+      height: auto;  /* Keeps aspect ratio */
+      max-width: 100%;  /* Limit width to container width */
+      max-height: none;  /* Remove height limit for larger images */
+    }
+
+    /* Optional: Ensure the container doesn't shrink too much */
+    body {
+      max-width: 100%;
+      overflow-x: hidden;
+      text-align: center;
     }
   </style>
 </head>
