@@ -60,28 +60,28 @@
 
     /* Landscape mode adjustments */
     @media (orientation: landscape) {
-      /* Shift video slightly to the right */
+      /* Layout video and buttons side by side */
       #controls {
-        flex-direction: row; /* Layout video and buttons side by side */
+        flex-direction: row; /* Side by side in landscape */
         justify-content: flex-start;
         align-items: center;
         width: 100%;
         position: relative;
       }
 
-      /* Video stream styling in landscape */
+      /* Move the video to the left */
       #video {
         flex: 1;
         max-height: 80vh;
-        margin-left: 10%; /* Shift video to the right */
+        margin-left: -15%; /* Shift video to the left */
       }
 
       /* Button container placed vertically in the middle of the right side of the video */
       #buttonContainer {
         position: absolute;
         right: 10px;
-        top: 50%; /* Position in the center of the page */
-        transform: translateY(-50%); /* Center vertically */
+        top: 50%; /* Center buttons vertically */
+        transform: translateY(-50%); /* Align vertically centered */
         z-index: 1;
       }
 
