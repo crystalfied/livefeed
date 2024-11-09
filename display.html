@@ -9,7 +9,7 @@
     /* Default styling for the image display */
     #uploadedImage {
       width: 100%;
-      max-width: 600px;
+      max-width: 600px;  /* Default maximum size */
       margin: 20px auto;
       display: block;
       border: 1px solid #ccc;
@@ -18,8 +18,9 @@
 
     /* Styling for landscape images */
     .landscape {
+      width: 100%;  /* Make the image fill available width */
+      height: auto;  /* Maintain aspect ratio */
       max-width: 1000px;  /* Larger width for landscape images */
-      max-height: 700px;  /* Optional: set a max height */
     }
   </style>
 </head>
@@ -81,7 +82,7 @@
           const uploadedImageElement = document.getElementById('uploadedImage');
           uploadedImageElement.src = latestImageUrl;
 
-          // Check if the image is landscape
+          // Check if the image is landscape (width > height)
           const imageWidth = latestImage.width;
           const imageHeight = latestImage.height;
 
