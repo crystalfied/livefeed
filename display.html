@@ -6,20 +6,23 @@
   <title>Display Latest Image from Imgur</title>
   <link rel="stylesheet" href="style.css">
   <style>
-    /* Ensure body has full height and is centered vertically and horizontally */
+    /* Center container vertically and horizontally */
     body {
       margin: 0;
       padding: 0;
       display: flex;
       justify-content: center;
-      align-items: flex-start;  /* Align content to the top */
+      align-items: center;
       min-height: 100vh;
       background-color: #f4f4f4;
-      flex-direction: column;  /* Stack header and image vertically */
+    }
+
+    /* Center content within the container */
+    .container {
       text-align: center;
     }
 
-    /* Center the header at the top */
+    /* Header styling */
     h1 {
       margin: 20px;
       font-size: 24px;
@@ -29,9 +32,9 @@
     /* Styling for the image */
     #uploadedImage {
       display: block;
-      margin: 20px auto;
+      margin: 0 auto;
       border: 1px solid #ccc;
-      object-fit: cover; /* Ensure the image fits the given dimensions */
+      object-fit: cover;
     }
 
     /* Specific styling for portrait images (9:16) */
@@ -49,8 +52,10 @@
 </head>
 <body>
 
-  <h1>Latest Uploaded Image</h1>
-  <img id="uploadedImage" alt="Latest image uploaded to Imgur" />
+  <div class="container">
+    <h1>Latest Uploaded Image</h1>
+    <img id="uploadedImage" alt="Latest image uploaded to Imgur" />
+  </div>
   
   <script>
     const CLIENT_ID = '9568a085be0e796'; // Your Imgur Client ID
