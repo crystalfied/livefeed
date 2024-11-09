@@ -2,163 +2,56 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Capture the moment and share it with everyone</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Display Latest Image from Imgur</title>
   <link rel="stylesheet" href="style.css">
   <style>
-    /* Body styling */
+    /* Default styling for the image display */
+    #uploadedImage {
+      width: 100%;  /* Image takes up 100% of the container */
+      height: auto;  /* Maintain aspect ratio */
+      max-width: 100%;  /* Don't scale larger than the screen width */
+      margin: 20px auto;
+      display: block;
+      border: 1px solid #ccc;
+      transition: all 0.3s ease;  /* Smooth transition for resizing */
+    }
+
+    /* Styling for landscape images */
+    .landscape {
+      width: 100%;  /* Ensures the image takes up the full container width */
+      height: auto;  /* Keeps aspect ratio */
+      max-width: 100%;  /* Limit width to container width */
+      max-height: none;  /* Remove height limit for larger images */
+    }
+
+    /* Optional: Ensure the container doesn't shrink too much */
     body {
-      margin: 0;
-      padding: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      flex-direction: column;
-      height: 100vh;
-      background-color: #f9f9f9;
-      overflow: auto;
-    }
-    
-    h1 {
+      max-width: 100%;
+      overflow-x: hidden;
       text-align: center;
-      margin-bottom: -20px;
     }
-    
-    #controls {
-      width: 100%;
-      max-width: 600px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      box-sizing: border-box;
-    }
-    
-    #video, #capturedImage {
-      width: 100%;
-      max-width: 600px;
-      max-height: 60vh; /* Limit height to 60% of the viewport */
-      object-fit: contain;
-      background-color: black;
-    }
-    
-    /* Button container styling */
-    #buttonContainer {
-      display: flex;
-      justify-content: center;
-      flex-direction: column;
-      gap: 10px;
-      margin-top: 10px;
-    }
-    
-    button {
-      padding: 10px 20px;
-      font-size: 16px;
-      min-width: 120px;
-      max-width: 150px;
-    }
-    /* Portrait mode adjustments */
-    @media (orientation: portrait) {
-      /* Make buttons appear side by side in portrait mode */
-      #buttonContainer {
-        flex-direction: row; /* Align buttons side by side */
-        gap: 20px; /* Space between buttons */
-      }
-    }
-    /* Landscape mode adjustments */
-    @media (orientation: landscape) {
-      /* Layout video and buttons side by side */
-      #controls {
-        flex-direction: row; /* Side by side in landscape */
-        justify-content: flex-start;
-        align-items: center;
-        width: 100%;
-        position: relative;
-      }
-    
-      /* Move the video to the left */
-      #video {
-        flex: 1;
-        max-height: 80vh;
-        margin-left: -15%; /* Shift video to the left */
-        margin-bottom: 20px; /* Add space at the bottom */
-      }
-    
-      /* Button container placed vertically in the middle of the right side of the video */
-      #buttonContainer {
-        position: absolute;
-        right: -80px; /* Increased to move buttons more to the right */
-        top: 50%; /* Center buttons vertically */
-        transform: translateY(-50%); /* Align vertically centered */
-        z-index: 1;
-      }
-    
-      #capturedImage {
-        flex: 1;
-        max-height: 80vh;
-        margin-left: -15%;
-      }
-    
-      button {
-        margin-bottom: 10px; /* Add spacing between buttons */
-      }
-    }
-    
-    /* Loading modal */
-    #loadingModal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.5);
-      color: white;
-      font-size: 24px;
-      text-align: center;
-      line-height: 100vh;
-      z-index: 1000;
-    }
-
-
   </style>
 </head>
 <body>
 
-  <h1>Capture the moment and share it with everyone</h1>
-  <div id="controls">
-    <video id="video" autoplay playsinline></video>
-    <img id="capturedImage" style="display:none;" />
-    <canvas id="canvas" style="display:none;"></canvas>
-
-    <div id="buttonContainer">
-      <button id="capture">Capture</button>
-      <button id="swapCamera">Swap Camera</button>
-      <button id="recapture" style="display:none;">Re-capture</button>
-    </div>
-  </div>
-
-  <div id="loadingModal">Sharing, please wait</div>
-
+  <h1>Latest Uploaded Image</h1>
+  <img id="uploadedImage" alt="Latest image uploaded to Imgur" />
+  
   <script>
-    const CLIENT_ID = '9568a085be0e796';
-    const CLIENT_SECRET = '2097a7d83130f607245fe51c00a2fc860e69be6c';
-    let accessToken = 'b5376875134b4a11a02ec10ff8f3f9f3df33d7db';
-    let refreshToken = 'dfa5156ca7f1be8e2ced0f1fcf1b230c368b8a36';
+    const CLIENT_ID = '9568a085be0e796'; // Your Imgur Client ID
+    const CLIENT_SECRET = '2097a7d83130f607245fe51c00a2fc860e69be6c'; // Your Imgur Client Secret
+    let accessToken = 'b5376875134b4a11a02ec10ff8f3f9f3df33d7db'; // Your initial access token
     const ACCESS_TOKEN_URL = 'https://api.imgur.com/oauth2/token';
-    let currentStream = null;
+    const IMAGE_API_URL = 'https://api.imgur.com/3/account/me/images';
 
-    window.onload = function() {
-      refreshAccessToken();
-      startVideoStream('user');
-    };
-
+    // Function to refresh the access token
     function refreshAccessToken() {
       const data = {
         client_id: CLIENT_ID,
         client_secret: CLIENT_SECRET,
         grant_type: 'refresh_token',
-        refresh_token: refreshToken
+        refresh_token: localStorage.getItem('refreshToken')  // Store refresh token securely
       };
 
       fetch(ACCESS_TOKEN_URL, {
@@ -170,8 +63,9 @@
       .then(data => {
         if (data.access_token) {
           accessToken = data.access_token;
+          localStorage.setItem('accessToken', accessToken);
           const expiresIn = data.expires_in || 3600;
-          setTimeout(refreshAccessToken, (expiresIn - 60) * 1000);
+          setTimeout(refreshAccessToken, (expiresIn - 60) * 1000);  // Refresh before expiration
         }
       })
       .catch(error => {
@@ -179,98 +73,58 @@
       });
     }
 
-    function startVideoStream(facingMode = 'user') {
-      const constraints = {
-        video: {
-          facingMode: facingMode,
-          width: { ideal: 1920 },
-          height: { ideal: 1080 },
-        }
-      };
-
-      if (currentStream) {
-        currentStream.getTracks().forEach(track => track.stop());
-        currentStream = null;
-      }
-
-      navigator.mediaDevices.getUserMedia(constraints)
-        .then(stream => {
-          currentStream = stream;
-          document.getElementById('video').srcObject = stream;
-        })
-        .catch(error => {
-          console.error('Error accessing camera:', error);
-          alert('Error accessing camera: ' + error.message);
-        });
-    }
-
-    document.getElementById('swapCamera').addEventListener('click', () => {
-      const currentFacingMode = document.getElementById('video').srcObject.getVideoTracks()[0].getSettings().facingMode;
-      const nextFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
-      startVideoStream(nextFacingMode);
-    });
-
-    function captureImage() {
-      const canvas = document.getElementById('canvas');
-      const context = canvas.getContext('2d');
-      const video = document.getElementById('video');
-
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-      const imageData = canvas.toDataURL('image/png');
-      document.getElementById('capturedImage').src = imageData;
-      document.getElementById('capturedImage').style.display = 'block';
-      document.getElementById('video').style.display = 'none';
-      document.getElementById('capture').style.display = 'none';
-      document.getElementById('recapture').style.display = 'inline-block';
-
-      document.getElementById('loadingModal').style.display = 'block';
-
-      uploadToImgur(imageData.split(',')[1]);
-    }
-
-    function uploadToImgur(imageData) {
-      if (!accessToken) {
-        console.log('User not authenticated');
-        return;
-      }
-
-      const formData = new FormData();
-      formData.append('image', imageData);
-
-      fetch('https://api.imgur.com/3/image', {
-        method: 'POST',
+    // Function to fetch the latest uploaded image from Imgur
+    function fetchLatestImage() {
+      fetch(IMAGE_API_URL, {
+        method: 'GET',
         headers: {
           'Authorization': 'Bearer ' + accessToken,
-        },
-        body: formData,
+        }
       })
       .then(response => response.json())
       .then(data => {
-        if (data.success) {
-          const imgUrl = data.data.link;
-          localStorage.setItem('uploadedImageUrl', imgUrl);
-          document.getElementById('loadingModal').style.display = 'none';
-          alert('Moment shared successfully!');
+        if (data.success && data.data.length > 0) {
+          const latestImage = data.data[0];
+          const latestImageUrl = latestImage.link;
+
+          // Create an image element and set its source
+          const uploadedImageElement = document.getElementById('uploadedImage');
+          uploadedImageElement.src = latestImageUrl;
+
+          // Check if the image is landscape (width > height)
+          const imageWidth = latestImage.width;
+          const imageHeight = latestImage.height;
+
+          if (imageWidth > imageHeight) {
+            // Apply landscape class for larger size
+            uploadedImageElement.classList.add('landscape');
+          } else {
+            // Remove the landscape class if not a landscape image
+            uploadedImageElement.classList.remove('landscape');
+          }
         } else {
-          console.log('Fail to share', data);
+          console.error('No images found or failed to fetch images');
         }
       })
       .catch(error => {
-        console.error('Error uploading image:', error);
+        console.error('Error fetching latest image:', error);
       });
     }
 
-    document.getElementById('capture').addEventListener('click', captureImage);
-    document.getElementById('recapture').addEventListener('click', () => {
-      document.getElementById('capturedImage').style.display = 'none';
-      document.getElementById('capture').style.display = 'inline-block';
-      document.getElementById('recapture').style.display = 'none';
-      document.getElementById('video').style.display = 'block';
-    });
-  </script>
+    // Start by refreshing the access token
+    window.onload = function() {
+      // Retrieve access token from localStorage if available
+      const storedAccessToken = localStorage.getItem('accessToken');
+      if (storedAccessToken) {
+        accessToken = storedAccessToken;
+        fetchLatestImage();
+      } else {
+        refreshAccessToken();  // If no token found, refresh the token
+      }
 
+      // Poll for the latest image every 5 seconds
+      setInterval(fetchLatestImage, 5000);  // Auto-refresh the image every 5 seconds
+    };
+  </script>
 </body>
 </html>
