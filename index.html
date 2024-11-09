@@ -2,22 +2,19 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Capture the moment and share it with everyone</title>
   <link rel="stylesheet" href="style.css">
   <style>
-    /* General body styling to prevent overflow */
     body {
       margin: 0;
       padding: 0;
-      overflow-x: hidden;
-      font-family: Arial, sans-serif;
+      overflow-x: hidden; /* Prevent horizontal scrolling */
     }
 
     #video, #capturedImage {
       width: 100%;
-      max-width: 100%;
-      height: auto;
+      max-width: 100%; /* Ensure no element overflows horizontally */
       margin: 10px auto;
       display: block;
       border: 1px solid #ccc;
@@ -32,24 +29,21 @@
       padding: 10px 20px;
       font-size: 16px;
       margin: 5px;
-      max-width: 100%; /* Ensures buttons don't overflow */
     }
 
     /* Custom Loading Modal */
     #loadingModal {
-      display: none;
+      display: none; /* Hidden initially */
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      background-color: rgba(0, 0, 0, 0.7);
+      background-color: rgba(0, 0, 0, 0.5);
       color: white;
       font-size: 24px;
       text-align: center;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      line-height: 100vh;
       z-index: 1000;
     }
   </style>
@@ -75,7 +69,9 @@
     let refreshToken = 'dfa5156ca7f1be8e2ced0f1fcf1b230c368b8a36';
     const ACCESS_TOKEN_URL = 'https://api.imgur.com/oauth2/token';
     let currentStream = null;
+    let currentDeviceId = null;
 
+    // Function to refresh the access token
     function refreshAccessToken() {
       const data = {
         client_id: CLIENT_ID,
@@ -104,11 +100,14 @@
 
     window.onload = function() {
       refreshAccessToken();
-      adjustVideoOrientation();
-      startVideoStream('user');
+      adjustVideoOrientation();  // Adjust based on initial orientation
+      startVideoStream('user');  // Default to the front camera
+
+      // Adjust orientation on orientation change
       window.addEventListener("orientationchange", adjustVideoOrientation);
     };
 
+    // Adjust video dimensions based on orientation
     function adjustVideoOrientation() {
       const orientation = window.innerWidth > window.innerHeight ? 'landscape' : 'portrait';
       const videoElement = document.getElementById('video');
@@ -116,6 +115,7 @@
       videoElement.style.height = orientation === 'portrait' ? '100%' : 'auto';
     }
 
+    // Start the video stream
     function startVideoStream(facingMode = 'user') {
       const constraints = {
         video: {
@@ -141,11 +141,13 @@
         });
     }
 
+    // Capture the image and upload it to Imgur
     function captureImage() {
       const canvas = document.getElementById('canvas');
       const context = canvas.getContext('2d');
       const video = document.getElementById('video');
 
+      // Set canvas dimensions based on current video orientation
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       context.drawImage(video, 0, 0, canvas.width, canvas.height);
@@ -157,11 +159,12 @@
       document.getElementById('capture').style.display = 'none';
       document.getElementById('recapture').style.display = 'inline-block';
 
-      document.getElementById('loadingModal').style.display = 'flex';
+      document.getElementById('loadingModal').style.display = 'block';
 
       uploadToImgur(imageData.split(',')[1]);
     }
 
+    // Upload the image to Imgur
     function uploadToImgur(imageData) {
       if (!accessToken) {
         console.log('User not authenticated');
@@ -194,12 +197,14 @@
       });
     }
 
+    // Swap between cameras
     document.getElementById('swapCamera').addEventListener('click', () => {
       const currentFacingMode = document.getElementById('video').srcObject.getVideoTracks()[0].getSettings().facingMode;
       const nextFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
       startVideoStream(nextFacingMode);
     });
 
+    // Event listeners for buttons
     document.getElementById('capture').addEventListener('click', captureImage);
     document.getElementById('recapture').addEventListener('click', () => {
       document.getElementById('capturedImage').style.display = 'none';
