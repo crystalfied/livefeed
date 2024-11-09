@@ -6,13 +6,20 @@
   <title>Display Latest Image from Imgur</title>
   <link rel="stylesheet" href="style.css">
   <style>
-    /* Styling for the image display */
+    /* Default styling for the image display */
     #uploadedImage {
       width: 100%;
       max-width: 600px;
       margin: 20px auto;
       display: block;
       border: 1px solid #ccc;
+      transition: all 0.3s ease;  /* Smooth transition for resizing */
+    }
+
+    /* Styling for landscape images */
+    .landscape {
+      max-width: 1000px;  /* Larger width for landscape images */
+      max-height: 700px;  /* Optional: set a max height */
     }
   </style>
 </head>
@@ -22,7 +29,6 @@
   <img id="uploadedImage" alt="Latest image uploaded to Imgur" />
   
   <script>
-    
     const CLIENT_ID = '9568a085be0e796'; // Your Imgur Client ID
     const CLIENT_SECRET = '2097a7d83130f607245fe51c00a2fc860e69be6c'; // Your Imgur Client Secret
     let accessToken = 'b5376875134b4a11a02ec10ff8f3f9f3df33d7db'; // Your initial access token
@@ -68,8 +74,24 @@
       .then(response => response.json())
       .then(data => {
         if (data.success && data.data.length > 0) {
-          const latestImageUrl = data.data[0].link;
-          document.getElementById('uploadedImage').src = latestImageUrl;
+          const latestImage = data.data[0];
+          const latestImageUrl = latestImage.link;
+
+          // Create an image element and set its source
+          const uploadedImageElement = document.getElementById('uploadedImage');
+          uploadedImageElement.src = latestImageUrl;
+
+          // Check if the image is landscape
+          const imageWidth = latestImage.width;
+          const imageHeight = latestImage.height;
+
+          if (imageWidth > imageHeight) {
+            // Apply landscape class for larger size
+            uploadedImageElement.classList.add('landscape');
+          } else {
+            // Remove the landscape class if not a landscape image
+            uploadedImageElement.classList.remove('landscape');
+          }
         } else {
           console.error('No images found or failed to fetch images');
         }
