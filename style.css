@@ -76,12 +76,6 @@ body {
 }
 
 /* Styling for header and buttons */
-h1 {
-  text-align: center;
-  margin-top: 50px;
-  font-size: 36px;
-  color: #fffae5;
-}
 
 #controls {
   text-align: center;
