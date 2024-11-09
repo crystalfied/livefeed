@@ -46,7 +46,7 @@
     #buttonContainer {
       display: flex;
       justify-content: center;
-      flex-wrap: wrap; /* Wrap buttons on small screens */
+      flex-direction: column;
       gap: 10px;
       margin-top: 10px;
     }
@@ -60,27 +60,29 @@
 
     /* Landscape mode adjustments */
     @media (orientation: landscape) {
-      /* Make #controls container take full width and adjust layout */
+      /* Shift video slightly to the right */
       #controls {
         flex-direction: row; /* Layout video and buttons side by side */
         justify-content: flex-start;
-        align-items: flex-start;
+        align-items: center;
         width: 100%;
+        position: relative;
       }
 
       /* Video stream styling in landscape */
       #video {
         flex: 1;
         max-height: 80vh;
+        margin-left: 10%; /* Shift video to the right */
       }
 
-      /* Button container placed on the right side of the video */
+      /* Button container placed vertically in the middle of the right side of the video */
       #buttonContainer {
         position: absolute;
         right: 10px;
-        top: 10%;
+        top: 50%; /* Position in the center of the page */
+        transform: translateY(-50%); /* Center vertically */
         z-index: 1;
-        flex-direction: column;
       }
 
       button {
