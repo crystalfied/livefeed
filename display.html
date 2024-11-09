@@ -6,30 +6,42 @@
   <title>Display Latest Image from Imgur</title>
   <link rel="stylesheet" href="style.css">
   <style>
-    /* Default styling for the image display */
+    /* Styling for body to center content */
+    body {
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background-color: #f4f4f4;
+      text-align: center;
+    }
+
+    /* Styling for the image container */
     #uploadedImage {
-      width: 100%;  /* Image takes up 100% of the container */
-      height: auto;  /* Maintain aspect ratio */
-      max-width: 100%;  /* Don't scale larger than the screen width */
-      margin: 20px auto;
+      width: 100%;  /* By default, scale the image with the width of the container */
+      height: auto; /* Maintain aspect ratio */
+      max-width: 100%;  /* Allow image to fill container but not exceed its width */
+      max-height: 80vh; /* Limit height to 80% of the viewport height */
       display: block;
+      margin: 20px auto;
       border: 1px solid #ccc;
       transition: all 0.3s ease;  /* Smooth transition for resizing */
     }
 
-    /* Styling for landscape images */
+    /* Specific styling for landscape images */
     .landscape {
-      width: 100%;  /* Ensures the image takes up the full container width */
-      height: auto;  /* Keeps aspect ratio */
-      max-width: 100%;  /* Limit width to container width */
-      max-height: none;  /* Remove height limit for larger images */
+      width: 100%;  /* Use 100% width but limited to container width */
+      height: auto; /* Maintain aspect ratio */
+      max-width: 100%; /* Prevent image from stretching beyond container width */
     }
 
-    /* Optional: Ensure the container doesn't shrink too much */
-    body {
-      max-width: 100%;
-      overflow-x: hidden;
-      text-align: center;
+    /* Max-width for portrait images (this will limit very tall images) */
+    .portrait {
+      max-width: 600px; /* Portrait images are constrained to 600px width */
+      width: auto;
+      height: auto;
     }
   </style>
 </head>
@@ -96,10 +108,12 @@
           const imageHeight = latestImage.height;
 
           if (imageWidth > imageHeight) {
-            // Apply landscape class for larger size
+            // Apply landscape class for larger images
             uploadedImageElement.classList.add('landscape');
+            uploadedImageElement.classList.remove('portrait');
           } else {
-            // Remove the landscape class if not a landscape image
+            // Apply portrait class for taller images
+            uploadedImageElement.classList.add('portrait');
             uploadedImageElement.classList.remove('landscape');
           }
         } else {
