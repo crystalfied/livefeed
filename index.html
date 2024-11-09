@@ -18,12 +18,13 @@
       background-color: #f9f9f9;
       overflow: auto;
     }
-
+    
     h1 {
       text-align: center;
       margin-top: 10px;
+      z-index: 1000; /* Ensure the header stays on top */
     }
-
+    
     #controls {
       width: 100%;
       max-width: 600px;
@@ -33,7 +34,7 @@
       justify-content: center;
       box-sizing: border-box;
     }
-
+    
     #video, #capturedImage {
       width: 100%;
       max-width: 600px;
@@ -41,7 +42,7 @@
       object-fit: contain;
       background-color: black;
     }
-
+    
     /* Button container styling */
     #buttonContainer {
       display: flex;
@@ -50,14 +51,14 @@
       gap: 10px;
       margin-top: 10px;
     }
-
+    
     button {
       padding: 10px 20px;
       font-size: 16px;
       min-width: 120px;
       max-width: 150px;
     }
-
+    
     /* Landscape mode adjustments */
     @media (orientation: landscape) {
       /* Layout video and buttons side by side */
@@ -74,6 +75,7 @@
         flex: 1;
         max-height: 80vh;
         margin-left: -15%; /* Shift video to the left */
+        margin-bottom: 20px; /* Add space at the bottom */
       }
     
       /* Button container placed vertically in the middle of the right side of the video */
@@ -84,7 +86,7 @@
         transform: translateY(-50%); /* Align vertically centered */
         z-index: 1;
       }
-
+    
       #capturedImage {
         flex: 1;
         max-height: 80vh;
@@ -94,8 +96,17 @@
       button {
         margin-bottom: 10px; /* Add spacing between buttons */
       }
+    
+      /* Adjust the header position for better visibility */
+      h1 {
+        position: absolute;
+        top: 20px; /* Ensure header stays at the top */
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 1000;
+      }
     }
-
+    
     /* Loading modal */
     #loadingModal {
       display: none;
