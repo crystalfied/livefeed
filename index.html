@@ -23,8 +23,10 @@
       text-align: center;
       margin-top: 10px;
       z-index: 1000; /* Ensure the header stays on top */
+      padding: 0 20px; /* Ensure some spacing around the header text */
     }
     
+    /* Controls styling */
     #controls {
       width: 100%;
       max-width: 600px;
@@ -33,6 +35,7 @@
       align-items: center;
       justify-content: center;
       box-sizing: border-box;
+      padding-top: 60px; /* Add space for the header */
     }
     
     #video, #capturedImage {
@@ -65,9 +68,10 @@
       #controls {
         flex-direction: row; /* Side by side in landscape */
         justify-content: flex-start;
-        align-items: center;
+        align-items: flex-start; /* Align items at the start to make space for header */
         width: 100%;
         position: relative;
+        padding-top: 0; /* Remove top padding in landscape */
       }
     
       /* Move the video to the left */
@@ -97,7 +101,7 @@
         margin-bottom: 10px; /* Add spacing between buttons */
       }
     
-      /* Adjust the header position for better visibility */
+      /* Adjust header for landscape mode */
       h1 {
         position: absolute;
         top: 20px; /* Ensure header stays at the top */
@@ -122,6 +126,7 @@
       line-height: 100vh;
       z-index: 1000;
     }
+
   </style>
 </head>
 <body>
