@@ -6,23 +6,19 @@
   <title>Display Latest Image from Imgur</title>
   <link rel="stylesheet" href="style.css">
   <style>
-    /* Center container vertically and horizontally */
+    /* Center body contents vertically and horizontally */
     body {
       margin: 0;
       padding: 0;
       display: flex;
-      justify-content: center;
-      align-items: center;
+      flex-direction: column;
+      align-items: center; /* Center elements horizontally */
       min-height: 100vh;
       background-color: #f4f4f4;
-    }
-
-    /* Center content within the container */
-    .container {
       text-align: center;
     }
 
-    /* Header styling */
+    /* Header styling, centered at the top */
     h1 {
       margin: 20px;
       font-size: 24px;
@@ -32,30 +28,28 @@
     /* Styling for the image */
     #uploadedImage {
       display: block;
-      margin: 0 auto;
+      margin-top: 20px;
       border: 1px solid #ccc;
       object-fit: cover;
     }
 
     /* Specific styling for portrait images (9:16) */
     .portrait {
-      width: 648px; /* Fixed width for portrait images */
-      height: 1152px; /* Fixed height for portrait images */
+      width: 648px;
+      height: 1152px;
     }
 
     /* Specific styling for landscape images (16:9) */
     .landscape {
-      width: 1280px; /* Fixed width for landscape images */
-      height: 720px; /* Fixed height for landscape images */
+      width: 1280px;
+      height: 720px;
     }
   </style>
 </head>
 <body>
 
-  <div class="container">
-    <h1>Latest Uploaded Image</h1>
-    <img id="uploadedImage" alt="Latest image uploaded to Imgur" />
-  </div>
+  <h1>Latest Uploaded Image</h1>
+  <img id="uploadedImage" alt="Latest image uploaded to Imgur" />
   
   <script>
     const CLIENT_ID = '9568a085be0e796'; // Your Imgur Client ID
