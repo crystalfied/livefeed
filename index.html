@@ -6,6 +6,7 @@
   <title>Capture the moment and share it with everyone</title>
   <link rel="stylesheet" href="style.css">
   <style>
+    /* Main body styling for scrollable layout */
     body {
       margin: 0;
       padding: 0;
@@ -13,11 +14,12 @@
       justify-content: center;
       align-items: center;
       flex-direction: column;
-      height: 100vh;
-      overflow: hidden;
+      min-height: 100vh;
+      overflow-y: auto; /* Allow scrolling for the entire page */
       background-color: #f9f9f9;
     }
 
+    /* Controls section centered within the page */
     #controls {
       width: 100%;
       max-width: 600px;
@@ -26,20 +28,20 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      overflow-y: auto; /* Allow scrolling within the controls */
-      max-height: 100vh;
       padding: 10px;
       box-sizing: border-box;
     }
 
+    /* Video and captured image with max height/width */
     #video, #capturedImage {
       width: 100%;
       max-width: 600px;
       max-height: 60vh; /* Limit height to 60% of the viewport */
       object-fit: contain;
-      background-color: black; /* Fallback background for video */
+      background-color: black;
     }
 
+    /* Button container with gap between buttons */
     #buttonContainer {
       display: flex;
       justify-content: center;
@@ -48,6 +50,7 @@
       margin-top: 10px;
     }
 
+    /* Styling for buttons */
     button {
       padding: 10px 20px;
       font-size: 16px;
@@ -56,12 +59,18 @@
       max-width: 150px;
     }
 
-    /* Landscape orientation styles */
+    /* Landscape orientation styling */
     @media (orientation: landscape) {
+      body {
+        flex-direction: row; /* Arrange body content in a row */
+        align-items: flex-start; /* Align items at the top */
+        padding: 10px; /* Padding to avoid cut-off on edges */
+      }
+
       #controls {
         flex-direction: row;
         align-items: flex-start;
-        overflow-y: auto; /* Allow scrolling in landscape */
+        justify-content: center;
       }
 
       #video, #capturedImage {
@@ -81,6 +90,7 @@
       }
     }
 
+    /* Loading modal styling */
     #loadingModal {
       display: none;
       position: fixed;
