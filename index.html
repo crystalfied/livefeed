@@ -28,20 +28,12 @@
       align-items: center;
     }
 
-    #video {
+    #video, #capturedImage {
       width: 100%;
       max-width: 600px;
-      max-height: 60vh; /* Limits the video height to 60% of the viewport */
-      object-fit: cover; /* Scales video without stretching */
-      background-color: black; /* Fallback background if video doesn't load */
-    }
-
-    #capturedImage {
-      width: 100%;
-      max-width: 600px;
-      display: none;
-      border: 1px solid #ccc;
-      margin: 10px auto;
+      max-height: 60vh; /* Limit height to 60% of the viewport */
+      object-fit: contain;
+      background-color: black; /* Fallback background for video */
     }
 
     button {
@@ -70,10 +62,10 @@
   
   <div id="controls">
     <video id="video" autoplay playsinline></video>
+    <img id="capturedImage" style="display:none;" />
+    <canvas id="canvas" style="display:none;"></canvas>
     <button id="capture">Capture</button>
     <button id="swapCamera">Swap Camera</button>
-    <canvas id="canvas" style="display:none;"></canvas>
-    <img id="capturedImage" style="display:none;" />
     <button id="recapture" style="display:none;">Re-capture</button>
   </div>
 
