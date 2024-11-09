@@ -28,27 +28,22 @@
 
     /* Styling for the image */
     #uploadedImage {
-      width: 100%;  /* Fill available width */
-      height: auto; /* Maintain aspect ratio */
-      max-width: 100%;  /* Prevent the image from overflowing the container */
-      max-height: 80vh;  /* Limit the image's height to 80% of the viewport height */
       display: block;
-      margin: 0 auto;  /* Center the image horizontally */
+      margin: 20px auto;
       border: 1px solid #ccc;
+      object-fit: cover; /* Ensure the image fits the given dimensions */
     }
 
-    /* Specific styling for landscape images */
-    .landscape {
-      width: 100%;
-      height: auto;
-      max-width: 100%;
-    }
-
-    /* Max-width for portrait images */
+    /* Specific styling for portrait images (9:16) */
     .portrait {
-      max-width: 600px;  /* Limit width for portrait images */
-      width: auto;
-      height: auto;
+      width: 720px; /* Fixed width for portrait images */
+      height: 1280px; /* Fixed height for portrait images */
+    }
+
+    /* Specific styling for landscape images (16:9) */
+    .landscape {
+      width: 1280px; /* Fixed width for landscape images */
+      height: 720px; /* Fixed height for landscape images */
     }
   </style>
 </head>
@@ -115,11 +110,11 @@
           const imageHeight = latestImage.height;
 
           if (imageWidth > imageHeight) {
-            // Apply landscape class for larger images
+            // Apply landscape class for landscape images (16:9 ratio)
             uploadedImageElement.classList.add('landscape');
             uploadedImageElement.classList.remove('portrait');
           } else {
-            // Apply portrait class for taller images
+            // Apply portrait class for portrait images (9:16 ratio)
             uploadedImageElement.classList.add('portrait');
             uploadedImageElement.classList.remove('landscape');
           }
