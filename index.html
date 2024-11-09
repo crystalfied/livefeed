@@ -90,6 +90,33 @@
       }
     }
 
+    /* Adjustments when the photo is captured */
+    #capturedImage {
+      width: 100%;
+      max-width: 600px;
+      max-height: 60vh;
+      object-fit: contain;
+      background-color: black;
+      display: none;
+    }
+
+    .captured {
+      /* Apply the same style to buttons after capturing the image */
+      position: absolute;
+      right: -80px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    #video {
+      display: none; /* Hide video when image is displayed */
+    }
+
     /* Loading modal */
     #loadingModal {
       display: none;
@@ -112,7 +139,7 @@
   <h1>Capture the moment and share it with everyone</h1>
   <div id="controls">
     <video id="video" autoplay playsinline></video>
-    <img id="capturedImage" style="display:none;" />
+    <img id="capturedImage" class="captured" style="display:none;" />
     <canvas id="canvas" style="display:none;"></canvas>
 
     <div id="buttonContainer">
