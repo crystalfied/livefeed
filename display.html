@@ -58,16 +58,21 @@
       padding: 20px;
       color: #333;
       font-family: Arial, sans-serif;
+      display: flex; /* Enable flexbox */
+      flex-direction: column; /* Arrange children vertically */
+      align-items: center; /* Center align children horizontally */
+      justify-content: center; /* Center align children vertically */
+      text-align: center; /* Center align text inside each element */
     }
 
     .right-container p {
-      margin: 10px auto;
+      margin: 10px 0;
       font-size: 18px;
     }
     
     .right-container img {
-      max-width: 60%; /* Adjust width to make it smaller */
-      max-height: 60%; /* Ensure the image scales proportionally */
+      max-width: 40%; /* Adjust width to make it smaller */
+      max-height: 40%; /* Ensure the image scales proportionally */
       margin: 10px auto; /* Center the image */
       display: block; /* Ensures it's treated as a block element */
     }
