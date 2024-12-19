@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Shared moments</title>
+  <title>Shared Moments</title>
   <link rel="stylesheet" href="style.css">
   <style>
     /* Center body contents vertically and horizontally */
@@ -11,14 +11,21 @@
       margin: 0;
       padding: 0;
       display: flex;
-      flex-direction: column;
-      align-items: center; /* Center elements horizontally */
+      flex-direction: row;
+      align-items: flex-start;
+      justify-content: space-between;
       min-height: 100vh;
       background-color: #f4f4f4;
-      text-align: center;
     }
 
-    /* Header styling, centered at the top */
+    /* Left container for the image and header */
+    .left-container {
+      text-align: center;
+      flex: 1;
+      padding: 20px;
+    }
+
+    /* Header styling */
     h1 {
       margin: 20px;
       font-size: 40px;
@@ -28,7 +35,7 @@
     /* Styling for the image */
     #uploadedImage {
       display: block;
-      margin-top: 20px;
+      margin: 20px auto;
       border: 1px solid #ccc;
       object-fit: cover;
     }
@@ -44,13 +51,36 @@
       width: 1280px;
       height: 720px;
     }
+
+    /* Right container for the test text */
+    .right-container {
+      flex: 1;
+      padding: 20px;
+      background-color: #eaeaea;
+      color: #333;
+      font-family: Arial, sans-serif;
+    }
+
+    .right-container p {
+      margin: 10px 0;
+      font-size: 18px;
+    }
   </style>
 </head>
 <body>
+  <!-- Left container -->
+  <div class="left-container">
+    <h1>Moments</h1>
+    <img id="uploadedImage" alt="" />
+  </div>
 
-  <h1>Moments</h1>
-  <img id="uploadedImage" alt="" />
-  
+  <!-- Right container -->
+  <div class="right-container">
+    <h2>Test Text</h2>
+    <p>This is a section for test text. You can add additional information, captions, or any other relevant details here.</p>
+    <p>Feel free to customize this content as needed.</p>
+  </div>
+
   <script>
     const CLIENT_ID = '9568a085be0e796'; // Your Imgur Client ID
     const CLIENT_SECRET = '2097a7d83130f607245fe51c00a2fc860e69be6c'; // Your Imgur Client Secret
